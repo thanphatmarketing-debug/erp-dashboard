@@ -3356,6 +3356,8 @@ function collectCalendarEvents() {
 
 function placeDashboardCalendarBelowGrowth() {
   var calendar = document.getElementById('dashboard-work-calendar');
+  var executiveDashboard = document.getElementById('executive-dashboard');
+  if (calendar && executiveDashboard && executiveDashboard.contains(calendar)) return;
   var leftColumn = document.getElementById('dashboard-left-column');
   if (calendar && leftColumn && calendar.parentElement !== leftColumn) {
     leftColumn.appendChild(calendar);
