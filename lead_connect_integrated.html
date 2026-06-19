@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead Connect — ส่ง Lead จากการตลาดสู่ CRM</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#222536;--border:#2e3248;--text:#e8eaf0;--text2:#8b90a7;--text3:#555a72;--green:#1D9E75;--green-dk:#0F6E56;--green-bg:#0d2e22;--amber:#BA7517;--amber-bg:#2d1f05;--red:#D85A30;--red-bg:#2d140a;--blue:#378ADD;--blue-bg:#0a1e35;--purple:#9E7FDD;--purple-bg:#1a1535;--radius:10px;--radius-sm:6px;}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.page-title{font-size:19px;font-weight:600}.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--text)}.tab.active{color:var(--text);border-bottom-color:var(--green)}
+.panel{display:none}.panel.active{display:block}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}.btn-p{background:var(--green);border-color:var(--green);color:#fff}.btn-p:hover{background:var(--green-dk)}
+.btn-danger{border-color:var(--red);color:var(--red)}.btn-danger:hover{background:var(--red-bg)}.btn-sm{padding:5px 10px;font-size:11px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px}.kpi-val{font-size:20px;font-weight:700}.kpi-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}.b-amber{background:var(--amber-bg);color:var(--amber)}.b-red{background:var(--red-bg);color:var(--red)}.b-blue{background:var(--blue-bg);color:var(--blue)}.b-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}.b-purple{background:var(--purple-bg);color:var(--purple)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.flow-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.flow-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.flow-num{width:26px;height:26px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green);flex-shrink:0}
+.flow-title{font-size:13px;font-weight:500}
+.flow-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;color:var(--text2)}
+.inp{padding:8px 11px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);width:100%}
+.inp:focus{outline:none;border-color:var(--green)}
+textarea.inp{resize:vertical;min-height:60px;font-family:inherit}
+select.inp{cursor:pointer}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;margin:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.success-box{background:var(--green-bg);border:1px solid var(--green);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:14px;font-size:13px;color:var(--green);display:none}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.fg-full{grid-column:1}}
+/* ERP fit override */
+html,body{width:100%;min-height:100%;overflow:hidden}
+body{font-size:12px}
+.wrap{max-width:none;width:100%;height:100vh;padding:12px 14px;overflow:auto}
+.topbar{margin-bottom:10px}.page-title{font-size:17px}.page-sub{font-size:11px}
+.kpi-row{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.kpi{padding:9px 10px}.kpi-val{font-size:18px}.kpi-label,.kpi-sub{font-size:10px}
+.tabs{margin-bottom:10px}.tab{padding:7px 12px;font-size:12px}
+.flow-card,.card{padding:12px}.form-grid{gap:8px}.inp{min-height:34px;font-size:12px}
+.tbl{font-size:11px;table-layout:auto}.tbl th,.tbl td{padding:7px 8px;white-space:normal}
+.modal{max-height:92vh;overflow:auto}
+@media(max-width:760px){.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1 class="page-title">🔗 Lead Connect</h1>
+      <p class="page-sub">เชื่อมต่อ Lead จากทีมการตลาดส่งตรงสู่ CRM ทีมขาย</p>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Lead ส่งมาวันนี้</div><div class="kpi-val up" id="kpi-today">0</div><div class="kpi-sub">จากการตลาด</div></div>
+    <div class="kpi"><div class="kpi-label">รอทีมขายรับ</div><div class="kpi-val" style="color:var(--amber)" id="kpi-pending">0</div><div class="kpi-sub">รายการ</div></div>
+    <div class="kpi"><div class="kpi-label">รับไปแล้ว</div><div class="kpi-val up" id="kpi-accepted">0</div><div class="kpi-sub">วันนี้</div></div>
+    <div class="kpi"><div class="kpi-label">Conversion Rate</div><div class="kpi-val" id="kpi-rate">—</div><div class="kpi-sub">Lead → ปิดขาย</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-send" onclick="sw('send')">📤 ส่ง Lead ใหม่</button>
+    <button class="tab" id="tab-inbox" onclick="sw('inbox')">📥 กล่องรับ Lead (ทีมขาย)</button>
+    <button class="tab" id="tab-history" onclick="sw('history')">📋 ประวัติ Lead ทั้งหมด</button>
+  </div>
+
+  <!-- Send -->
+  <div class="panel active" id="panel-send">
+    <div id="send-success" class="success-box">✅ ส่ง Lead ไปยังทีมขายแล้ว — ทีมขายจะเห็นใน "กล่องรับ Lead" ทันที</div>
+    <div class="flow-card">
+      <div class="flow-header">
+        <div class="flow-num">1</div>
+        <div><div class="flow-title">ข้อมูล Lead</div><div class="flow-sub">กรอกข้อมูลที่ได้จากโฆษณา</div></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">ชื่อ - นามสกุล *</label><input class="inp" id="sf-name" placeholder="เช่น คุณสมชาย ใจดี"></div>
+        <div class="form-group"><label class="form-label">เบอร์โทร *</label><input class="inp" id="sf-phone" placeholder="08x-xxx-xxxx" type="tel"></div>
+        <div class="form-group"><label class="form-label">Line ID</label><input class="inp" id="sf-line" placeholder="@lineid"></div>
+        <div class="form-group"><label class="form-label">แหล่งที่มา *</label>
+          <select class="inp" id="sf-source">
+            <option value="Facebook Ads">Facebook Ads</option>
+            <option value="TikTok">TikTok</option>
+            <option value="Line OA">Line OA</option>
+            <option value="Inbox/DM">Inbox / DM</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="flow-card">
+      <div class="flow-header">
+        <div class="flow-num">2</div>
+        <div><div class="flow-title">รายละเอียดความสนใจ</div><div class="flow-sub">ข้อมูลที่ Lead แจ้งมา</div></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">แคมเปญที่มาจาก</label><input class="inp" id="sf-campaign" placeholder="เช่น บ้านเดี่ยว 3ห้องนอน"></div>
+        <div class="form-group"><label class="form-label">งบประมาณ (ถ้ามี)</label><input class="inp" id="sf-budget" type="number" placeholder="เช่น 3500000"></div>
+        <div class="form-group fg-full"><label class="form-label">โครงการ / แบบที่สนใจ</label><input class="inp" id="sf-interest" placeholder="เช่น บ้านเดี่ยว 2ชั้น ใกล้ BTS"></div>
+        <div class="form-group"><label class="form-label">ระดับความสนใจ</label>
+          <select class="inp" id="sf-score">
+            <option value="hot">🔥 Hot — สนใจมาก พร้อมคุย</option>
+            <option value="warm">🌤 Warm — สนใจพอควร</option>
+            <option value="cold">❄️ Cold — แค่ถามข้อมูล</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">มอบหมายให้</label>
+          <select class="inp" id="sf-assign">
+            <option value="คุณสมหญิง">คุณสมหญิง (Sales)</option>
+            <option value="คุณวิชัย">คุณวิชัย (Sales)</option>
+            <option value="ทีมขาย">ทีมขาย (ไม่ระบุ)</option>
+          </select>
+        </div>
+        <div class="form-group fg-full"><label class="form-label">หมายเหตุจากทีมการตลาด</label><textarea class="inp" id="sf-note" placeholder="เช่น ลูกค้าสอบถามเรื่องดาวน์ บอกว่าพร้อมเข้าชมโครงการ..."></textarea></div>
+      </div>
+    </div>
+    <div style="text-align:right;margin-top:4px">
+      <button class="btn btn-p" onclick="sendLead()">📤 ส่ง Lead ไปยังทีมขาย</button>
+    </div>
+  </div>
+
+  <!-- Inbox -->
+  <div class="panel" id="panel-inbox">
+    <div class="card" style="padding:0">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ชื่อ</th>
+          <th>เบอร์</th>
+          <th>แหล่งที่มา</th>
+          <th>แคมเปญ</th>
+          <th>ระดับ</th>
+          <th>มอบหมาย</th>
+          <th>เวลาส่ง</th>
+          <th style="text-align:center">สถานะ</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="inbox-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="panel" id="panel-history">
+    <div class="card">
+      <div class="card-title">
+        <span>Lead ทั้งหมด</span>
+        <span id="hist-count" style="font-size:12px;font-weight:400"></span>
+      </div>
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ชื่อ</th>
+          <th>แหล่งที่มา</th>
+          <th>แคมเปญ</th>
+          <th>ระดับ</th>
+          <th>มอบหมาย</th>
+          <th>ส่งเมื่อ</th>
+          <th style="text-align:center">สถานะ</th>
+          <th>ผลลัพธ์</th>
+        </tr></thead>
+        <tbody id="hist-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Accept Lead -->
+<div class="overlay" id="overlay-accept">
+  <div class="modal">
+    <div class="modal-title">
+      <span>📥 รับ Lead และส่งต่อ CRM</span>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div id="accept-info" style="background:var(--bg3);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:13px"></div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">วันนัดคุยครั้งแรก</label>
+      <input class="inp" id="acc-next-date" type="datetime-local">
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">หมายเหตุ</label>
+      <textarea class="inp" id="acc-note" placeholder="เช่น โทรแล้ว นัดพรุ่งนี้บ่าย 2..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-p" onclick="confirmAccept()">✅ รับ Lead เข้า CRM</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+let leads=[], nextLId=1, acceptingId=null;
+const SCORE_BADGE={hot:'b-red',warm:'b-amber',cold:'b-gray'};
+const SCORE_LABEL={hot:'🔥 Hot',warm:'🌤 Warm',cold:'❄️ Cold'};
+
+function loadDemo(){
+  const now=new Date();
+  const fmt=(h)=>{const d=new Date(now);d.setHours(d.getHours()-h);return d.toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'});};
+  leads=[
+    {id:1,name:'คุณสมชาย วงศ์ดี',phone:'081-234-5678',line:'@somchai',source:'Facebook Ads',campaign:'บ้านเดี่ยว 3ห้องนอน',budget:3500000,interest:'บ้านเดี่ยว 2ชั้น',score:'hot',assign:'คุณสมหญิง',note:'พร้อมคุยทันที',sentAt:fmt(1),status:'pending',result:''},
+    {id:2,name:'คุณนภา ศรีสุข',phone:'082-345-6789',line:'',source:'TikTok',campaign:'Reel บ้านใหม่',budget:2800000,interest:'ทาวน์โฮม',score:'warm',assign:'คุณวิชัย',note:'',sentAt:fmt(2),status:'accepted',result:'นัดคุยแล้ว'},
+    {id:3,name:'คุณชัยพร สดใส',phone:'087-890-1234',line:'',source:'TikTok',campaign:'Content บ้านเดี่ยว',budget:2500000,interest:'ทาวน์โฮม',score:'cold',assign:'ทีมขาย',note:'ยังไม่พร้อม',sentAt:fmt(5),status:'pending',result:''},
+    {id:4,name:'คุณกมลา ทองดี',phone:'088-901-2345',line:'@kamala',source:'Facebook Ads',campaign:'ทาวน์โฮม 1.59M',budget:1800000,interest:'ทาวน์โฮม',score:'warm',assign:'คุณสมหญิง',note:'',sentAt:fmt(24),status:'accepted',result:'ส่งข้อมูล'},
+  ];
+  nextLId=5;
+  renderAll(); updateKPI();
+}
+
+function renderAll(){ renderInbox(); renderHistory(); }
+
+function renderInbox(){
+  const tbody=document.getElementById('inbox-tbody');
+  const pending=leads.filter(l=>l.status==='pending');
+  tbody.innerHTML=pending.length?pending.map(l=>`<tr>
+    <td style="padding-left:14px;font-weight:500">${l.name}</td>
+    <td><a href="tel:${l.phone}" style="color:var(--green)">${l.phone}</a></td>
+    <td><span class="badge b-blue">${l.source}</span></td>
+    <td style="color:var(--text2);font-size:11px">${l.campaign||'—'}</td>
+    <td><span class="badge ${SCORE_BADGE[l.score]}">${SCORE_LABEL[l.score]}</span></td>
+    <td style="color:var(--text2)">${l.assign}</td>
+    <td style="color:var(--text2);font-size:11px">${l.sentAt}</td>
+    <td style="text-align:center"><span class="badge b-amber">รอรับ</span></td>
+    <td><button class="btn btn-sm btn-p" onclick="openAccept(${l.id})">✅ รับ Lead</button></td>
+  </tr>`).join(''):'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text2)">ไม่มี Lead ที่รอรับ</td></tr>';
+}
+
+function renderHistory(){
+  document.getElementById('hist-count').textContent=leads.length+' รายการ';
+  document.getElementById('hist-tbody').innerHTML=leads.map(l=>`<tr>
+    <td style="padding-left:14px;font-weight:500">${l.name}<div style="font-size:10px;color:var(--text2)">${l.phone}</div></td>
+    <td><span class="badge b-blue">${l.source}</span></td>
+    <td style="color:var(--text2);font-size:11px">${l.campaign||'—'}</td>
+    <td><span class="badge ${SCORE_BADGE[l.score]}">${SCORE_LABEL[l.score]}</span></td>
+    <td style="color:var(--text2)">${l.assign}</td>
+    <td style="color:var(--text2);font-size:11px">${l.sentAt}</td>
+    <td style="text-align:center"><span class="badge ${l.status==='accepted'?'b-green':'b-amber'}">${l.status==='accepted'?'รับแล้ว':'รอรับ'}</span></td>
+    <td style="color:var(--text2);font-size:11px">${l.result||'—'}</td>
+  </tr>`).join('');
+}
+
+function updateKPI(){
+  const now=new Date(); const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  document.getElementById('kpi-today').textContent=leads.length;
+  document.getElementById('kpi-pending').textContent=leads.filter(l=>l.status==='pending').length;
+  document.getElementById('kpi-accepted').textContent=leads.filter(l=>l.status==='accepted').length;
+  const acc=leads.filter(l=>l.status==='accepted').length;
+  document.getElementById('kpi-rate').textContent=leads.length>0?Math.round(acc/leads.length*100)+'%':'—';
+}
+
+function sendLead(){
+  const name=document.getElementById('sf-name').value.trim();
+  const phone=document.getElementById('sf-phone').value.trim();
+  if(!name||!phone){showToast('กรุณากรอกชื่อและเบอร์โทร');return;}
+  leads.unshift({
+    id:nextLId++,name,phone,
+    line:document.getElementById('sf-line').value.trim(),
+    source:document.getElementById('sf-source').value,
+    campaign:document.getElementById('sf-campaign').value.trim(),
+    budget:parseInt(document.getElementById('sf-budget').value)||0,
+    interest:document.getElementById('sf-interest').value.trim(),
+    score:document.getElementById('sf-score').value,
+    assign:document.getElementById('sf-assign').value,
+    note:document.getElementById('sf-note').value.trim(),
+    sentAt:new Date().toLocaleString('th-TH',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}),
+    status:'pending',result:''
+  });
+  ['sf-name','sf-phone','sf-line','sf-campaign','sf-interest','sf-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sf-budget').value='';
+  document.getElementById('sf-score').value='warm';
+  const sb=document.getElementById('send-success');
+  sb.style.display='block';
+  setTimeout(()=>sb.style.display='none',4000);
+  renderAll(); updateKPI();
+  showToast('✓ ส่ง Lead แล้ว');
+}
+
+function openAccept(id){
+  acceptingId=id;
+  const l=leads.find(x=>x.id===id); if(!l)return;
+  document.getElementById('accept-info').innerHTML=`
+    <div style="font-size:14px;font-weight:600;margin-bottom:6px">${l.name} <span class="badge ${SCORE_BADGE[l.score]}">${SCORE_LABEL[l.score]}</span></div>
+    <div style="font-size:12px;color:var(--text2)">📱 ${l.phone} ${l.line?'• Line: '+l.line:''}</div>
+    <div style="font-size:12px;color:var(--text2);margin-top:3px">📣 ${l.source}${l.campaign?' — '+l.campaign:''}</div>
+    ${l.interest?`<div style="font-size:12px;color:var(--text2);margin-top:3px">🏠 ${l.interest}</div>`:''}
+    ${l.note?`<div style="font-size:12px;color:var(--amber);margin-top:6px">💬 ${l.note}</div>`:''}`;
+  document.getElementById('acc-next-date').value='';
+  document.getElementById('acc-note').value='';
+  document.getElementById('overlay-accept').classList.add('open');
+}
+
+function confirmAccept(){
+  const l=leads.find(x=>x.id===acceptingId); if(!l)return;
+  l.status='accepted';
+  l.result=document.getElementById('acc-note').value||'รับ Lead แล้ว';
+  closeModal(); renderAll(); updateKPI();
+  showToast('✅ รับ Lead เข้า CRM แล้ว');
+}
+
+function sw(id){
+  ['send','inbox','history'].forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('active',t===id);
+    document.getElementById('panel-'+t)?.classList.toggle('active',t===id);
+  });
+  if(id==='inbox') renderInbox();
+  if(id==='history') renderHistory();
+}
+
+function closeModal(){document.getElementById('overlay-accept').classList.remove('open');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+loadDemo();
+</script>
+</body>
+</html>

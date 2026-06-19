@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance — งวดชำระ</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#1a1d27;--bg3:#222536;
+  --border:#2e3248;--text:#e8eaf0;--text2:#8b90a7;--text3:#555a72;
+  --green:#1D9E75;--green-dk:#0F6E56;--green-bg:#0d2e22;
+  --amber:#BA7517;--amber-bg:#2d1f05;
+  --red:#D85A30;--red-bg:#2d140a;
+  --blue:#378ADD;--blue-bg:#0a1e35;
+  --purple:#9E7FDD;--purple-bg:#1a1535;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.page-title{font-size:19px;font-weight:600}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--text)}.tab.active{color:var(--text);border-bottom-color:var(--green)}
+.panel{display:none}.panel.active{display:block}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}
+.btn-p{background:var(--green);border-color:var(--green);color:#fff}
+.btn-p:hover{background:var(--green-dk)}
+.btn-danger{border-color:var(--red);color:var(--red)}.btn-danger:hover{background:var(--red-bg)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+.kpi-val{font-size:19px;font-weight:700}
+.kpi-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-blue{background:var(--blue-bg);color:var(--blue)}
+.b-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.card-pad{padding:14px 16px}
+.card-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.prog-bg{background:var(--bg3);border-radius:3px;height:5px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:3px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:540px;margin:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fg-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;color:var(--text2)}
+.inp{padding:8px 11px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);width:100%}
+.inp:focus{outline:none;border-color:var(--green)}
+textarea.inp{resize:vertical;min-height:64px;font-family:inherit}
+select.inp{cursor:pointer}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.warn-box{background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--red);display:flex;align-items:flex-start;gap:8px}
+.installment-row{display:grid;grid-template-columns:40px 1fr 100px 90px 110px 80px 90px;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.installment-row:last-child{border-bottom:none}
+.installment-row:hover{background:rgba(255,255,255,.02)}
+.inst-head{background:var(--bg3);font-size:11px;font-weight:500;color:var(--text2)}
+@media(max-width:800px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.kpi-row{grid-template-columns:1fr 1fr}}
+/* ERP fit override */
+html,body{width:100%;min-height:100%;overflow:hidden}
+body{font-size:12px}
+.wrap{max-width:none;width:100%;height:100vh;padding:12px 14px;overflow:auto}
+.topbar{margin-bottom:10px}.page-title{font-size:17px}.page-sub{font-size:11px}
+.kpi-row{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.kpi{padding:9px 10px}.kpi-val{font-size:18px}.kpi-label,.kpi-sub{font-size:10px}
+.tabs{margin-bottom:10px}.tab{padding:7px 12px;font-size:12px}
+.card{padding:10px}.tbl{font-size:11px;table-layout:auto}.tbl th,.tbl td{padding:7px 8px;white-space:normal}
+.modal{max-height:92vh;overflow:auto}.inp{min-height:34px;font-size:12px}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1 class="page-title">💰 Finance — งวดชำระ</h1>
+      <p class="page-sub">ติดตามการชำระเงิน มัดจำ งวด และยอดค้างทุกสัญญา</p>
+    </div>
+    <button class="btn btn-p" onclick="openAddContract()">+ เพิ่มสัญญา</button>
+  </div>
+
+  <div id="overdue-warn" style="display:none" class="warn-box">
+    <span style="font-size:16px;flex-shrink:0">⚠️</span>
+    <span id="overdue-warn-text"></span>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">รายรับเดือนนี้</div><div class="kpi-val up" id="kpi-income">฿0</div><div class="kpi-sub">ที่รับแล้ว</div></div>
+    <div class="kpi"><div class="kpi-label">ยอดค้างชำระ</div><div class="kpi-val dn" id="kpi-overdue">฿0</div><div class="kpi-sub">รวมทุกสัญญา</div></div>
+    <div class="kpi"><div class="kpi-label">งวดครบกำหนด</div><div class="kpi-val" style="color:var(--amber)" id="kpi-due">฿0</div><div class="kpi-sub">เดือนนี้</div></div>
+    <div class="kpi"><div class="kpi-label">มัดจำรอรับ</div><div class="kpi-val" id="kpi-deposit">฿0</div><div class="kpi-sub">รวมทุกสัญญา</div></div>
+    <div class="kpi"><div class="kpi-label">สัญญาทั้งหมด</div><div class="kpi-val" id="kpi-contracts">0</div><div class="kpi-sub">สัญญา</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-contracts" onclick="sw('contracts')">📋 สัญญาทั้งหมด</button>
+    <button class="tab" id="tab-overdue" onclick="sw('overdue')">⚠️ ค้างชำระ</button>
+    <button class="tab" id="tab-upcoming" onclick="sw('upcoming')">📅 ครบกำหนดเร็วๆ นี้</button>
+    <button class="tab" id="tab-summary" onclick="sw('summary')">📊 สรุปรายรับ</button>
+  </div>
+
+  <div class="panel active" id="panel-contracts">
+    <div class="card">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ลูกค้า</th>
+          <th>โครงการ</th>
+          <th style="text-align:right">มูลค่าสัญญา</th>
+          <th style="text-align:right">รับแล้ว</th>
+          <th style="text-align:right">ค้างชำระ</th>
+          <th>ความคืบหน้า</th>
+          <th style="text-align:center">สถานะ</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="contracts-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-overdue">
+    <div class="card">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ลูกค้า</th>
+          <th>งวดที่</th>
+          <th style="text-align:right">ยอดค้าง</th>
+          <th>ครบกำหนด</th>
+          <th>เกินมาแล้ว</th>
+          <th style="text-align:center">สถานะ</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="overdue-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-upcoming">
+    <div class="card">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ลูกค้า</th>
+          <th>งวดที่</th>
+          <th style="text-align:right">ยอดชำระ</th>
+          <th>ครบกำหนด</th>
+          <th>เหลืออีก</th>
+          <th style="text-align:center">สถานะ</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="upcoming-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-summary">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card card-pad">
+        <div class="card-title">รายรับรายเดือน (6 เดือนล่าสุด)</div>
+        <div id="monthly-chart"></div>
+      </div>
+      <div class="card card-pad">
+        <div class="card-title">สัดส่วนสถานะงวด</div>
+        <div id="status-chart"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: สัญญา -->
+<div class="overlay" id="overlay-contract">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="contract-modal-title">+ เพิ่มสัญญาใหม่</span>
+      <button class="btn btn-sm" onclick="closeModal('overlay-contract')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group fg-full"><label class="form-label">ชื่อลูกค้า *</label><input class="inp" id="cf-name" placeholder="เช่น คุณสมชาย วงศ์ดี"></div>
+      <div class="form-group fg-full"><label class="form-label">โครงการ / แบบบ้าน *</label><input class="inp" id="cf-project" placeholder="เช่น บ้านเดี่ยว 2ชั้น 3ห้องนอน ลาดพร้าว"></div>
+      <div class="form-group"><label class="form-label">มูลค่าสัญญา (บาท) *</label><input class="inp" id="cf-total" type="number" placeholder="เช่น 3500000" oninput="calcInstallments()"></div>
+      <div class="form-group"><label class="form-label">ยอดมัดจำ (บาท)</label><input class="inp" id="cf-deposit" type="number" placeholder="เช่น 100000" oninput="calcInstallments()"></div>
+      <div class="form-group"><label class="form-label">วันเซ็นสัญญา</label><input class="inp" id="cf-sign-date" type="date"></div>
+      <div class="form-group"><label class="form-label">วันเริ่มก่อสร้าง</label><input class="inp" id="cf-start-date" type="date"></div>
+      <div class="form-group"><label class="form-label">จำนวนงวด</label>
+        <select class="inp" id="cf-installments" onchange="calcInstallments()">
+          <option value="4">4 งวด</option>
+          <option value="5">5 งวด</option>
+          <option value="6" selected>6 งวด</option>
+          <option value="8">8 งวด</option>
+          <option value="10">10 งวด</option>
+          <option value="12">12 งวด</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">ความถี่งวด</label>
+        <select class="inp" id="cf-freq">
+          <option value="30">ทุก 1 เดือน</option>
+          <option value="60">ทุก 2 เดือน</option>
+          <option value="90">ทุก 3 เดือน</option>
+        </select>
+      </div>
+      <div class="form-group fg-full">
+        <label class="form-label">ยอดต่องวด (คำนวณอัตโนมัติ)</label>
+        <div style="padding:8px 11px;font-size:14px;font-weight:600;color:var(--green);background:var(--green-bg);border-radius:var(--radius-sm);border:1px solid var(--green)" id="cf-per-installment">—</div>
+      </div>
+      <div class="form-group fg-full"><label class="form-label">หมายเหตุ</label><textarea class="inp" id="cf-note" placeholder="เช่น ลูกค้าขอผ่อนพิเศษ..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del-contract" style="display:none" onclick="deleteContract()">🗑 ลบสัญญา</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeModal('overlay-contract')">ยกเลิก</button>
+        <button class="btn btn-p" onclick="saveContract()">💾 บันทึกสัญญา</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: รายละเอียดสัญญา + งวด -->
+<div class="overlay" id="overlay-detail">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title">
+      <span id="detail-contract-name">รายละเอียดสัญญา</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="editContract()">✏️ แก้ไข</button>
+        <button class="btn btn-sm" onclick="closeModal('overlay-detail')">✕</button>
+      </div>
+    </div>
+    <div id="detail-contract-info" style="margin-bottom:14px"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">ตารางงวดชำระ</div>
+    <div class="installment-row inst-head">
+      <span>งวด</span><span>รายการ</span><span>ยอด (฿)</span><span>ครบกำหนด</span><span>ชำระแล้ว</span><span>สถานะ</span><span></span>
+    </div>
+    <div id="installment-list"></div>
+    <div class="modal-footer" style="margin-top:10px">
+      <div style="font-size:12px;color:var(--text2)" id="detail-summary"></div>
+      <button class="btn" onclick="closeModal('overlay-detail')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: บันทึกชำระ -->
+<div class="overlay" id="overlay-pay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">
+      <span>💳 บันทึกการชำระ</span>
+      <button class="btn btn-sm" onclick="closeModal('overlay-pay')">✕</button>
+    </div>
+    <div id="pay-info" style="font-size:13px;color:var(--text2);margin-bottom:14px"></div>
+    <div class="form-grid">
+      <div class="form-group fg-full"><label class="form-label">ยอดที่รับ (บาท) *</label><input class="inp" id="pay-amount" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">วันที่รับเงิน</label><input class="inp" id="pay-date" type="date"></div>
+      <div class="form-group"><label class="form-label">วิธีชำระ</label>
+        <select class="inp" id="pay-method">
+          <option>โอนธนาคาร</option><option>เงินสด</option><option>เช็ค</option><option>บัตรเครดิต</option>
+        </select>
+      </div>
+      <div class="form-group fg-full"><label class="form-label">หมายเหตุ</label><input class="inp" id="pay-note" placeholder="เช่น โอนเข้า SCB xxxx"></div>
+    </div>
+    <div class="modal-footer">
+      <div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeModal('overlay-pay')">ยกเลิก</button>
+        <button class="btn btn-p" onclick="confirmPay()">✓ บันทึกชำระ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+let contracts=[], nextCId=1, currentCId=null, currentInstId=null, editingCId=null;
+const today=new Date(); today.setHours(0,0,0,0);
+
+function loadDemo(){
+  contracts=[
+    {id:1,name:'คุณสมชาย วงศ์ดี',project:'บ้านเดี่ยว 2ชั้น 3ห้องนอน ลาดพร้าว',total:3500000,deposit:100000,signDate:'2025-11-01',startDate:'2025-12-01',note:'',
+      installments:[
+        {id:1,label:'งวดที่ 1 — เริ่มก่อสร้าง',amount:500000,dueDate:'2025-12-01',paid:500000,paidDate:'2025-12-01',method:'โอนธนาคาร',note:'',status:'paid'},
+        {id:2,label:'งวดที่ 2 — โครงสร้าง',amount:600000,dueDate:'2026-02-01',paid:0,paidDate:'',method:'',note:'',status:'paid'},
+        {id:3,label:'งวดที่ 3 — ระบบ',amount:600000,dueDate:'2026-04-01',paid:0,paidDate:'',method:'',note:'',status:'overdue'},
+        {id:4,label:'งวดที่ 4 — สถาปัตย์',amount:600000,dueDate:'2026-06-01',paid:0,paidDate:'',method:'',note:'',status:'upcoming'},
+        {id:5,label:'งวดที่ 5 — เก็บงาน',amount:600000,dueDate:'2026-08-01',paid:0,paidDate:'',method:'',note:'',status:'pending'},
+        {id:6,label:'งวดที่ 6 — ส่งมอบ',amount:500000,dueDate:'2026-10-01',paid:0,paidDate:'',method:'',note:'',status:'pending'},
+      ]},
+    {id:2,name:'คุณนภา ศรีสุข',project:'ทาวน์โฮม 3ชั้น รัชดา',total:2800000,deposit:80000,signDate:'2025-12-01',startDate:'2026-01-01',note:'',
+      installments:[
+        {id:7,label:'งวดที่ 1',amount:400000,dueDate:'2026-01-01',paid:400000,paidDate:'2026-01-02',method:'โอนธนาคาร',note:'',status:'paid'},
+        {id:8,label:'งวดที่ 2',amount:480000,dueDate:'2026-03-01',paid:480000,paidDate:'2026-03-05',method:'เช็ค',note:'',status:'paid'},
+        {id:9,label:'งวดที่ 3',amount:480000,dueDate:'2026-05-01',paid:0,paidDate:'',method:'',note:'',status:'overdue'},
+        {id:10,label:'งวดที่ 4',amount:480000,dueDate:'2026-07-01',paid:0,paidDate:'',method:'',note:'',status:'upcoming'},
+        {id:11,label:'งวดที่ 5',amount:480000,dueDate:'2026-09-01',paid:0,paidDate:'',method:'',note:'',status:'pending'},
+        {id:12,label:'งวดที่ 6',amount:400000,dueDate:'2026-11-01',paid:0,paidDate:'',method:'',note:'',status:'pending'},
+      ]},
+    {id:3,name:'คุณมาลี รุ่งเรือง',project:'บ้านเดี่ยว Premium สุขุมวิท',total:6000000,deposit:200000,signDate:'2025-10-01',startDate:'2025-11-01',note:'สัญญา VIP',
+      installments:[
+        {id:13,label:'งวดที่ 1',amount:1000000,dueDate:'2025-11-01',paid:1000000,paidDate:'2025-11-01',method:'โอนธนาคาร',note:'',status:'paid'},
+        {id:14,label:'งวดที่ 2',amount:1000000,dueDate:'2026-01-01',paid:1000000,paidDate:'2026-01-03',method:'โอนธนาคาร',note:'',status:'paid'},
+        {id:15,label:'งวดที่ 3',amount:1000000,dueDate:'2026-03-01',paid:1000000,paidDate:'2026-03-10',method:'โอนธนาคาร',note:'',status:'paid'},
+        {id:16,label:'งวดที่ 4',amount:1000000,dueDate:'2026-05-01',paid:0,paidDate:'',method:'',note:'',status:'upcoming'},
+        {id:17,label:'งวดที่ 5',amount:1000000,dueDate:'2026-07-01',paid:0,paidDate:'',method:'',note:'',status:'pending'},
+        {id:18,label:'งวดที่ 6',amount:800000,dueDate:'2026-09-01',paid:0,paidDate:'',method:'',note:'',status:'pending'},
+      ]},
+  ];
+  nextCId=4;
+  renderAll(); updateKPI();
+}
+
+function renderAll(){ renderContracts(); renderOverdue(); renderUpcoming(); renderSummary(); }
+
+function fmtB(n){ return n>=1000000?'฿'+(n/1000000).toFixed(2)+'M':'฿'+Number(n).toLocaleString(); }
+function fmtDate(s){ if(!s)return'—'; const d=new Date(s); return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}); }
+function daysDiff(s){ const d=new Date(s); d.setHours(0,0,0,0); return Math.round((d-today)/(1000*60*60*24)); }
+function statusBadge(st,dd){
+  if(st==='paid') return '<span class="badge b-green">ชำระแล้ว</span>';
+  const diff=daysDiff(dd);
+  if(diff<0) return '<span class="badge b-red">ค้างชำระ</span>';
+  if(diff<=30) return '<span class="badge b-amber">ใกล้ครบ</span>';
+  return '<span class="badge b-gray">รอชำระ</span>';
+}
+
+function renderContracts(){
+  const tbody=document.getElementById('contracts-tbody');
+  tbody.innerHTML=contracts.map(c=>{
+    const paid=c.installments.reduce((s,i)=>s+Number(i.paid||0),0)+Number(c.deposit||0);
+    const remain=c.total-paid;
+    const pct=Math.round(paid/c.total*100);
+    const overdue=c.installments.filter(i=>i.status==='overdue').length;
+    const st=overdue>0?'<span class="badge b-red">ค้างชำระ '+overdue+' งวด</span>':
+              remain<=0?'<span class="badge b-green">ชำระครบ</span>':
+              '<span class="badge b-blue">กำลังดำเนินการ</span>';
+    return `<tr style="cursor:pointer" onclick="openDetail(${c.id})">
+      <td style="padding-left:14px;font-weight:500">${c.name}</td>
+      <td style="color:var(--text2);font-size:11px">${c.project}</td>
+      <td style="text-align:right;font-weight:600">${fmtB(c.total)}</td>
+      <td style="text-align:right;color:var(--green)">${fmtB(paid)}</td>
+      <td style="text-align:right;color:${remain>0?'var(--red)':'var(--green)'}">${fmtB(remain)}</td>
+      <td style="min-width:100px"><div style="font-size:10px;color:var(--text2);margin-bottom:2px">${pct}%</div><div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>50?'var(--amber)':'var(--blue)'}"></div></div></td>
+      <td style="text-align:center">${st}</td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();openDetail(${c.id})">ดูงวด →</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderOverdue(){
+  const rows=[];
+  contracts.forEach(c=>c.installments.forEach(i=>{
+    if(i.status==='overdue'||(!i.paid&&daysDiff(i.dueDate)<0)){
+      rows.push({c,i,diff:Math.abs(daysDiff(i.dueDate))});
+    }
+  }));
+  document.getElementById('overdue-tbody').innerHTML=rows.map(({c,i,diff})=>`
+    <tr>
+      <td style="padding-left:14px;font-weight:500">${c.name}</td>
+      <td style="color:var(--text2)">${i.label}</td>
+      <td style="text-align:right;font-weight:600;color:var(--red)">${fmtB(i.amount)}</td>
+      <td>${fmtDate(i.dueDate)}</td>
+      <td style="color:var(--red);font-weight:500">${diff} วัน</td>
+      <td style="text-align:center"><span class="badge b-red">ค้างชำระ</span></td>
+      <td><button class="btn btn-sm btn-p" onclick="openPay(${c.id},${i.id})">💳 รับเงิน</button></td>
+    </tr>`).join('');
+}
+
+function renderUpcoming(){
+  const rows=[];
+  contracts.forEach(c=>c.installments.forEach(i=>{
+    const diff=daysDiff(i.dueDate);
+    if(!i.paid&&diff>=0&&diff<=60) rows.push({c,i,diff});
+  }));
+  rows.sort((a,b)=>a.diff-b.diff);
+  document.getElementById('upcoming-tbody').innerHTML=rows.map(({c,i,diff})=>`
+    <tr>
+      <td style="padding-left:14px;font-weight:500">${c.name}</td>
+      <td style="color:var(--text2)">${i.label}</td>
+      <td style="text-align:right;font-weight:600">${fmtB(i.amount)}</td>
+      <td>${fmtDate(i.dueDate)}</td>
+      <td style="color:${diff<=7?'var(--red)':diff<=30?'var(--amber)':'var(--text2)'};font-weight:500">${diff===0?'วันนี้':diff+' วัน'}</td>
+      <td style="text-align:center"><span class="badge ${diff<=7?'b-red':diff<=30?'b-amber':'b-blue'}">${diff<=7?'ด่วน!':diff<=30?'ใกล้ครบ':'รอชำระ'}</span></td>
+      <td><button class="btn btn-sm btn-p" onclick="openPay(${c.id},${i.id})">💳 รับเงิน</button></td>
+    </tr>`).join('');
+}
+
+function renderSummary(){
+  const mc=document.getElementById('monthly-chart');
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.'];
+  const vals=[3200000,4100000,2800000,5600000,3900000,7200000];
+  const max=Math.max(...vals);
+  mc.innerHTML=months.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--text2);width:36px;flex-shrink:0">${m}</span>
+      <div style="flex:1;background:var(--bg3);border-radius:3px;height:10px;overflow:hidden">
+        <div style="width:${Math.round(vals[i]/max*100)}%;height:100%;background:var(--green);border-radius:3px"></div>
+      </div>
+      <span style="font-size:11px;font-weight:600;min-width:50px;text-align:right">${fmtB(vals[i])}</span>
+    </div>`).join('');
+  const sc=document.getElementById('status-chart');
+  const total=contracts.reduce((s,c)=>s+c.installments.length,0);
+  const paid=contracts.reduce((s,c)=>s+c.installments.filter(i=>i.paid).length,0);
+  const overdue=contracts.reduce((s,c)=>s+c.installments.filter(i=>i.status==='overdue').length,0);
+  const upcoming=contracts.reduce((s,c)=>s+c.installments.filter(i=>{const d=daysDiff(i.dueDate);return !i.paid&&d>=0&&d<=30;}).length,0);
+  const pending=total-paid-overdue-upcoming;
+  [['ชำระแล้ว',paid,'var(--green)'],['ค้างชำระ',overdue,'var(--red)'],['ใกล้ครบ',upcoming,'var(--amber)'],['รอชำระ',pending,'var(--blue)']].forEach(([lbl,cnt,color])=>{
+    sc.innerHTML+=`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+      <span style="flex:1;font-size:12px">${lbl}</span>
+      <span style="font-size:13px;font-weight:600">${cnt}</span>
+      <span style="font-size:11px;color:var(--text2)">${total>0?Math.round(cnt/total*100):0}%</span>
+    </div>`;
+  });
+}
+
+function updateKPI(){
+  const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
+  let income=0,overdueAmt=0,dueAmt=0,depositAmt=0;
+  contracts.forEach(c=>{
+    depositAmt+=Number(c.deposit||0);
+    c.installments.forEach(i=>{
+      if(i.paid){ const d=new Date(i.paidDate||''); if(d.getMonth()===m&&d.getFullYear()===y) income+=Number(i.paid); }
+      if(!i.paid&&daysDiff(i.dueDate)<0) overdueAmt+=Number(i.amount);
+      const diff=daysDiff(i.dueDate); if(!i.paid&&diff>=0&&diff<=30) dueAmt+=Number(i.amount);
+    });
+  });
+  document.getElementById('kpi-income').textContent=fmtB(income);
+  document.getElementById('kpi-overdue').textContent=fmtB(overdueAmt);
+  document.getElementById('kpi-due').textContent=fmtB(dueAmt);
+  document.getElementById('kpi-deposit').textContent=fmtB(depositAmt);
+  document.getElementById('kpi-contracts').textContent=contracts.length;
+  const od=contracts.reduce((s,c)=>s+c.installments.filter(i=>!i.paid&&daysDiff(i.dueDate)<0).length,0);
+  const wb=document.getElementById('overdue-warn');
+  if(od>0){ wb.style.display='flex'; document.getElementById('overdue-warn-text').textContent=`มีงวดค้างชำระ ${od} งวด รวมมูลค่า ${fmtB(overdueAmt)} — กรุณาติดตามด่วน`; }
+  else wb.style.display='none';
+}
+
+function openDetail(id){
+  currentCId=id;
+  const c=contracts.find(x=>x.id===id); if(!c)return;
+  document.getElementById('detail-contract-name').textContent=c.name+' — '+c.project;
+  const paid=c.installments.reduce((s,i)=>s+Number(i.paid||0),0)+Number(c.deposit||0);
+  const pct=Math.round(paid/c.total*100);
+  document.getElementById('detail-contract-info').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text2)">มูลค่าสัญญา</div><div style="font-size:14px;font-weight:700">${fmtB(c.total)}</div></div>
+      <div style="background:var(--green-bg);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--green)">รับแล้ว</div><div style="font-size:14px;font-weight:700;color:var(--green)">${fmtB(paid)}</div></div>
+      <div style="background:var(--red-bg);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--red)">ค้าง</div><div style="font-size:14px;font-weight:700;color:var(--red)">${fmtB(c.total-paid)}</div></div>
+    </div>
+    <div style="background:var(--bg3);border-radius:3px;height:6px;overflow:hidden;margin-bottom:4px"><div style="width:${pct}%;height:100%;background:var(--green);border-radius:3px"></div></div>
+    <div style="font-size:11px;color:var(--text2)">ชำระแล้ว ${pct}% • เซ็นสัญญา ${fmtDate(c.signDate)} • เริ่มก่อสร้าง ${fmtDate(c.startDate)}</div>`;
+  document.getElementById('installment-list').innerHTML=c.installments.map(i=>`
+    <div class="installment-row">
+      <span style="font-size:11px;color:var(--text2);font-weight:600">${i.id%100||'—'}</span>
+      <span style="font-size:11px">${i.label}</span>
+      <span style="font-weight:600">${Number(i.amount).toLocaleString()}</span>
+      <span style="font-size:11px;color:var(--text2)">${fmtDate(i.dueDate)}</span>
+      <span style="font-size:11px;color:${i.paid?'var(--green)':'var(--text3)'}">${i.paid?Number(i.paid).toLocaleString()+'฿':'—'}</span>
+      <span>${statusBadge(i.paid?'paid':'',i.dueDate)}</span>
+      <span>${i.paid?'':' <button class="btn btn-sm btn-p" onclick="openPay('+currentCId+','+i.id+')">รับ</button>'}</span>
+    </div>`).join('');
+  const paidCount=c.installments.filter(i=>i.paid).length;
+  document.getElementById('detail-summary').textContent=`ชำระแล้ว ${paidCount}/${c.installments.length} งวด`;
+  document.getElementById('overlay-detail').classList.add('open');
+}
+
+function openPay(cId,iId){
+  currentCId=cId; currentInstId=iId;
+  const c=contracts.find(x=>x.id===cId); const i=c?.installments.find(x=>x.id===iId);
+  if(!i)return;
+  document.getElementById('pay-info').textContent=c.name+' — '+i.label+' ยอด '+fmtB(i.amount);
+  document.getElementById('pay-amount').value=i.amount;
+  document.getElementById('pay-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('pay-note').value='';
+  document.getElementById('overlay-detail').classList.remove('open');
+  document.getElementById('overlay-pay').classList.add('open');
+}
+
+function confirmPay(){
+  const c=contracts.find(x=>x.id===currentCId); const i=c?.installments.find(x=>x.id===currentInstId);
+  if(!i)return;
+  i.paid=parseInt(document.getElementById('pay-amount').value)||i.amount;
+  i.paidDate=document.getElementById('pay-date').value;
+  i.method=document.getElementById('pay-method').value;
+  i.note=document.getElementById('pay-note').value;
+  i.status='paid';
+  closeModal('overlay-pay'); renderAll(); updateKPI();
+  showToast('✓ บันทึกการชำระแล้ว');
+}
+
+function calcInstallments(){
+  const total=parseInt(document.getElementById('cf-total').value)||0;
+  const deposit=parseInt(document.getElementById('cf-deposit').value)||0;
+  const n=parseInt(document.getElementById('cf-installments').value)||6;
+  const per=n>0?Math.round((total-deposit)/n):0;
+  document.getElementById('cf-per-installment').textContent=per>0?'฿'+per.toLocaleString()+'  /งวด':'—';
+}
+
+function openAddContract(){
+  editingCId=null;
+  document.getElementById('contract-modal-title').textContent='+ เพิ่มสัญญาใหม่';
+  document.getElementById('btn-del-contract').style.display='none';
+  ['cf-name','cf-project','cf-note'].forEach(id=>document.getElementById(id).value='');
+  ['cf-total','cf-deposit'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cf-installments').value='6';
+  document.getElementById('cf-freq').value='30';
+  document.getElementById('cf-sign-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('cf-start-date').value='';
+  document.getElementById('cf-per-installment').textContent='—';
+  document.getElementById('overlay-contract').classList.add('open');
+}
+
+function editContract(){
+  closeModal('overlay-detail');
+  const c=contracts.find(x=>x.id===currentCId); if(!c)return;
+  editingCId=currentCId;
+  document.getElementById('contract-modal-title').textContent='✏️ แก้ไขสัญญา';
+  document.getElementById('btn-del-contract').style.display='inline-flex';
+  document.getElementById('cf-name').value=c.name;
+  document.getElementById('cf-project').value=c.project;
+  document.getElementById('cf-total').value=c.total;
+  document.getElementById('cf-deposit').value=c.deposit||0;
+  document.getElementById('cf-sign-date').value=c.signDate||'';
+  document.getElementById('cf-start-date').value=c.startDate||'';
+  document.getElementById('cf-installments').value=c.installments.length;
+  document.getElementById('cf-note').value=c.note||'';
+  calcInstallments();
+  document.getElementById('overlay-contract').classList.add('open');
+}
+
+function saveContract(){
+  const name=document.getElementById('cf-name').value.trim();
+  const project=document.getElementById('cf-project').value.trim();
+  const total=parseInt(document.getElementById('cf-total').value)||0;
+  if(!name||!total){showToast('กรุณากรอกชื่อและมูลค่าสัญญา');return;}
+  const deposit=parseInt(document.getElementById('cf-deposit').value)||0;
+  const n=parseInt(document.getElementById('cf-installments').value)||6;
+  const freq=parseInt(document.getElementById('cf-freq').value)||30;
+  const signDate=document.getElementById('cf-sign-date').value;
+  const startDate=document.getElementById('cf-start-date').value||signDate;
+  const perInst=Math.round((total-deposit)/n);
+  if(editingCId){
+    const c=contracts.find(x=>x.id===editingCId);
+    if(c){c.name=name;c.project=project;c.total=total;c.deposit=deposit;c.signDate=signDate;c.startDate=startDate;c.note=document.getElementById('cf-note').value;}
+  } else {
+    const insts=Array.from({length:n},(_, i)=>{
+      const dd=new Date(startDate||new Date()); dd.setDate(dd.getDate()+freq*(i+1));
+      return {id:nextCId*100+(i+1),label:`งวดที่ ${i+1}`,amount:perInst,dueDate:dd.toISOString().slice(0,10),paid:0,paidDate:'',method:'',note:'',status:'pending'};
+    });
+    contracts.push({id:nextCId++,name,project,total,deposit,signDate,startDate,note:document.getElementById('cf-note').value,installments:insts});
+  }
+  closeModal('overlay-contract'); renderAll(); updateKPI();
+  showToast(editingCId?'✓ แก้ไขสัญญาแล้ว':'✓ เพิ่มสัญญาแล้ว');
+}
+
+function deleteContract(){
+  if(!editingCId||!confirm('ลบสัญญานี้?'))return;
+  contracts=contracts.filter(c=>c.id!==editingCId);
+  closeModal('overlay-contract'); renderAll(); updateKPI(); showToast('ลบแล้ว');
+}
+
+function sw(id){
+  ['contracts','overdue','upcoming','summary'].forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('active',t===id);
+    document.getElementById('panel-'+t)?.classList.toggle('active',t===id);
+  });
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+loadDemo();
+</script>
+</body>
+</html>

@@ -1,0 +1,2006 @@
+﻿<!DOCTYPE html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="auth.js?v=20260612-api-user-fix7"></script>
+<title>ERP Dashboard v2</title>
+<link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=20260618-fit-source-3">
+</head>
+<body>
+
+<!-- Sidebar -->
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-bg"><div class="login-grid"></div><div class="login-glow"></div></div>
+  <div class="login-inner">
+
+    <!-- LEFT: Brand -->
+    <div class="login-brand">
+      <div class="login-badge"><span class="login-badge-dot"></span>ENTERPRISE ERP v2.0</div>
+      <h1>ระบบ ERP<br><span class="accent">Dashboard</span></h1>
+      <p>Enterprise Resource Planning บริหารทรัพยากรองค์กรแบบครบวงจร เชื่อมต่อ Google Sheets ได้ทันที</p>
+      <div class="login-feats">
+        <div class="login-feat"><div class="login-feat-icon lfi-b">📊</div><div><b>Dashboard ครบ</b><small>ภาพรวมทั้งหมด</small></div></div>
+        <div class="login-feat"><div class="login-feat-icon lfi-p">👥</div><div><b>จัดการลูกค้า</b><small>ข้อมูลครบวงจร</small></div></div>
+        <div class="login-feat"><div class="login-feat-icon lfi-a">📋</div><div><b>ติดตามงาน</b><small>Real-time</small></div></div>
+        <div class="login-feat"><div class="login-feat-icon lfi-g">🛡️</div><div><b>Admin Panel</b><small>จัดการสิทธิ์</small></div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Login Card -->
+    <div class="login-card-wrap">
+      <div class="login-card">
+        <div class="lc-logo"><div class="lc-logo-icon">🔐</div></div>
+        <div class="lc-title">ยินดีต้อนรับ</div>
+        <div class="lc-sub">เข้าสู่ระบบ ERP Dashboard</div>
+
+        <form id="erpLoginForm" onsubmit="doLogin(event)">
+
+          <div class="lc-field">
+            <label for="login-user">รหัสพนักงาน (Employee ID)</label>
+            <div class="lc-input-wrap">
+              <span class="lc-icon">👤</span>
+              <input type="text" id="login-user" name="employeeId" class="lc-input"
+                placeholder="EMP-001" value="" autocomplete="username" required>
+            </div>
+          </div>
+
+          <div class="lc-field">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <label for="login-pass">รหัสผ่าน</label>
+              <span style="font-size:10px;color:#64748b">ลืมรหัสผ่าน: ติดต่อ Admin</span>
+            </div>
+            <div class="lc-input-wrap">
+              <span class="lc-icon">🔒</span>
+              <input type="password" id="login-pass" name="password" class="lc-input"
+                placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="lc-eye" id="lc-eye-btn" onclick="lcToggleEye()">👁️</button>
+            </div>
+          </div>
+
+          <div class="lc-remember">
+            <input type="checkbox" id="lc-remember">
+            <label for="lc-remember">จดจำการเข้าสู่ระบบ</label>
+          </div>
+
+          <div class="lc-err" id="lc-err">รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง</div>
+
+          <button type="submit" class="lc-btn">เข้าสู่ระบบ ➔</button>
+
+        </form>
+
+          <div class="lc-hint" style="margin-top:10px">ใช้รหัสพนักงานและรหัสผ่านที่ผู้ดูแลระบบสร้างให้</div>
+
+        <div class="lc-footer">
+          <button type="button" class="lc-footer-btn" onclick="lcSetAdmin()">⚙️ Admin Login</button>
+          <div style="width:1px;height:14px;background:#e2e8f0"></div>
+          <span class="lc-footer-btn" style="cursor:default">📱 รองรับมือถืออัตโนมัติ</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="erp-app">
+<div id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⬡</div>
+    <div class="logo-info">
+      <div class="logo-text">ERP System</div>
+      <div class="logo-sub">v2.0 · Google Sheets</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">หน้าหลัก</div>
+    <div class="nav-item active" data-panel="dashboard" onclick="switchPanel(this)">
+      <span class="nav-icon">◈</span> Dashboard
+    </div>
+
+    <div class="nav-section" style="margin-top:6px">ข้อมูล</div>
+    <div class="nav-item" data-panel="sales" onclick="switchPanel(this)">
+      <span class="nav-icon nav-icon-sales" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 17.5 9 12l3.5 3.5L20 7"/><path d="M14 7h6v6"/></svg></span> Sales
+      <span class="nav-badge" id="badge-sales">—</span>
+    </div>
+    <div class="nav-item" data-panel="customers" onclick="switchPanel(this)">
+      <span class="nav-icon nav-icon-customers" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 19c0-2.2-1.8-4-4-4s-4 1.8-4 4"/><circle cx="12" cy="8" r="3"/><path d="M19 18c-.2-1.6-1.2-2.9-2.6-3.5"/><path d="M17 6.5a2.5 2.5 0 0 1 0 5"/></svg></span> ลูกค้า
+      <span class="nav-badge" id="badge-customers">—</span>
+    </div>
+    <div class="nav-item" data-panel="contracts" onclick="switchPanel(this)">
+      <span class="nav-icon nav-icon-contracts" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M10 12h6"/><path d="M10 16h5"/></svg></span> สัญญา
+      <span class="nav-badge" id="badge-contracts">—</span>
+    </div>
+    <div class="nav-item" data-panel="employees" onclick="switchPanel(this)">
+      <span class="nav-icon nav-icon-employees" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M8.5 17c.8-1.7 2-2.5 3.5-2.5s2.7.8 3.5 2.5"/></svg></span> พนักงาน
+      <span class="nav-badge" id="badge-employees">—</span>
+    </div>
+    <div class="nav-item" data-panel="projects" onclick="switchPanel(this)">
+      <span class="nav-icon nav-icon-projects" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 20 7.5v9L12 21l-8-4.5v-9z"/><path d="M12 12 20 7.5"/><path d="M12 12v9"/><path d="M12 12 4 7.5"/></svg></span> โปรเจกต์
+      <span class="nav-badge" id="badge-projects">—</span>
+    </div>
+    <div class="nav-item" data-panel="daily-report" onclick="switchPanel(this)">
+      <span class="nav-icon nav-icon-daily" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v16H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h4"/></svg></span> รายงานประจำวัน
+    </div>
+    <button class="nav-dropdown-btn" id="marketing-menu-btn" type="button" onclick="toggleNavMenu('marketing')">
+      <span class="nav-dropdown-main">
+        <span class="nav-icon">📢</span>
+        <span>การตลาด</span>
+      </span>
+      <span class="nav-dropdown-arrow" id="marketing-menu-arrow">▼</span>
+    </button>
+    <div class="nav-dropdown" id="marketing-menu-dropdown">
+      <div class="nav-item" data-panel="marketing-dept" onclick="switchPanel(this)">
+        <span class="nav-icon">📣</span> ADS Manager
+      </div>
+      <div class="nav-item" data-panel="marketing-contracts" onclick="switchPanel(this)">
+        <span class="nav-icon">🪧</span> สัญญาสื่อ / ป้ายโฆษณา
+      </div>
+    </div>
+    <button class="nav-dropdown-btn" id="ops-menu-btn" type="button" onclick="toggleNavMenu('ops')">
+      <span class="nav-dropdown-main">
+        <span class="nav-icon">🔗</span>
+        <span>เชื่อมระบบ</span>
+      </span>
+      <span class="nav-dropdown-arrow" id="ops-menu-arrow">▼</span>
+    </button>
+    <div class="nav-dropdown" id="ops-menu-dropdown">
+      <div class="nav-item" data-panel="lead-connect" onclick="switchPanel(this)">
+        <span class="nav-icon">🔗</span> Lead Connect
+      </div>
+      <div class="nav-item" data-panel="construction" onclick="switchPanel(this)">
+        <span class="nav-icon">🏗️</span> ก่อสร้าง/ผลิต
+      </div>
+      <div class="nav-item" data-panel="finance" onclick="switchPanel(this)">
+        <span class="nav-icon">💰</span> การเงิน
+      </div>
+    </div>
+
+    <div class="nav-section" style="margin-top:6px">เมนูหลัก</div>
+    <button class="nav-dropdown-btn" id="analysis-menu-btn" type="button" onclick="toggleNavMenu('analysis')">
+      <span class="nav-dropdown-main">
+        <span class="nav-icon">📊</span>
+        <span>วิเคราะห์</span>
+      </span>
+      <span class="nav-dropdown-arrow" id="analysis-menu-arrow">▼</span>
+    </button>
+    <div class="nav-dropdown" id="analysis-menu-dropdown">
+      <div class="nav-item" data-panel="reports" onclick="switchPanel(this)">
+        <span class="nav-icon">📉</span> Reports
+      </div>
+      <div class="nav-item" data-panel="calendar" onclick="openDashboardCalendar(this)">
+        <span class="nav-icon">📅</span> Calendar
+      </div>
+      <div class="nav-item" data-panel="ai" onclick="switchPanel(this)">
+        <span class="nav-icon">🤖</span> AI Insight
+      </div>
+      <div class="nav-item" data-panel="kanban" onclick="switchPanel(this)">
+        <span class="nav-icon">📌</span> Kanban
+      </div>
+      <div class="nav-item" data-panel="invoice" onclick="switchPanel(this)">
+        <span class="nav-icon">🧾</span> Invoice
+      </div>
+    </div>
+    <button class="nav-dropdown-btn" id="system-menu-btn" type="button" onclick="toggleNavMenu('system')">
+      <span class="nav-dropdown-main">
+        <span class="nav-icon">🛠️</span>
+        <span>ระบบ</span>
+      </span>
+      <span class="nav-dropdown-arrow" id="system-menu-arrow">▼</span>
+    </button>
+    <div class="nav-dropdown" id="system-menu-dropdown">
+      <div class="nav-item" data-panel="activity" onclick="switchPanel(this)">
+        <span class="nav-icon">≋</span> Activity Log
+      </div>
+      <div class="nav-item" data-panel="audit" onclick="switchPanel(this)">
+        <span class="nav-icon">📋</span> Audit Trail
+      </div>
+      <div class="nav-item" data-panel="backup" onclick="switchPanel(this)">
+        <span class="nav-icon">💾</span> Backup/Restore
+      </div>
+      <div class="nav-item" data-panel="webhooks" onclick="switchPanel(this)">
+        <span class="nav-icon">🔔</span> Webhooks
+      </div>
+      <div class="nav-item" data-panel="custom-fields" onclick="switchPanel(this)">
+        <span class="nav-icon">🧩</span> Custom Fields
+      </div>
+      <div class="nav-item" data-panel="company-backoffice" onclick="switchPanel(this)">
+        <span class="nav-icon">🏢</span> หลังบ้านบริษัท
+      </div>
+      <div class="nav-item" data-panel="admin" onclick="switchPanel(this)" id="nav-admin" style="display:none">
+        <span class="nav-icon">🛡️</span> Admin Panel
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="config-label" style="margin-bottom:0">ERP Dashboard</div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <button id="mobile-menu-btn" type="button" onclick="toggleMobileMenu()" aria-label="เปิดเมนูหลัก" title="เปิดเมนู">☰</button>
+    <div class="topbar-breadcrumb">
+      <span class="breadcrumb-home">ERP</span>
+      <span class="breadcrumb-sep">/</span>
+      <span class="page-title" id="page-title">Dashboard</span>
+    </div>
+    <div class="topbar-right" id="topbar-user-area-wrap">
+      <input class="search-box" id="search-input" placeholder="ค้นหา..." oninput="onSearch(this.value)">
+      <div id="topbar-user-area" style="display:flex;align-items:center;gap:8px"></div><button class="btn btn-ghost btn-sm" onclick="refreshCurrent()" title="รีเฟรช">↺</button>
+      <button class="btn btn-ghost btn-sm" onclick="printDashboard()" title="Print / PDF">🖨️</button>
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="สลับธีม">🌙</button>
+      <button class="btn btn-primary btn-sm" id="btn-add" onclick="openAddModal()" style="display:none">+ เพิ่ม</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── Dashboard Panel ── -->
+    <div class="panel active" id="panel-dashboard">
+      <section id="executive-dashboard" class="executive-dashboard" hidden>
+        <div class="exec-topbar">
+          <div>
+            <h2>Dashboard ผู้บริหาร</h2>
+            <p>ภาพรวมทุกแผนก ยอดขาย การเงิน และสถานะโครงการทั้งหมด</p>
+          </div>
+          <div class="exec-top-actions">
+            <span class="exec-date-chip" id="exec-today-date">วันนี้</span>
+            <button class="btn btn-primary btn-sm" type="button" onclick="switchPanelByName('reports')">ดูรายงานรวม</button>
+          </div>
+        </div>
+
+        <div class="exec-kpi-grid">
+          <article class="exec-kpi blue">
+            <span>Lead วันนี้</span>
+            <strong id="exec-kpi-leads">24</strong>
+            <small id="exec-kpi-leads-note">รวมจากการตลาดและฝ่ายขาย</small>
+          </article>
+          <article class="exec-kpi green">
+            <span>ยอดขายเดือนนี้</span>
+            <strong id="exec-kpi-sales">฿12.4M</strong>
+            <small>ดูรายงานยอดขายได้</small>
+          </article>
+          <article class="exec-kpi purple">
+            <span>โครงการทั้งหมด</span>
+            <strong id="exec-kpi-projects">8</strong>
+            <small>รวมงานที่กำลังดำเนินการ</small>
+          </article>
+          <article class="exec-kpi amber">
+            <span>ยอดค้างชำระ</span>
+            <strong id="exec-kpi-overdue">฿3.2M</strong>
+            <small>ติดตามจากการเงิน</small>
+          </article>
+          <article class="exec-kpi red">
+            <span>งานล่าช้า</span>
+            <strong id="exec-kpi-late">3</strong>
+            <small>ต้องติดตามด่วน</small>
+          </article>
+        </div>
+
+        <div class="exec-section-title">Sales & โครงการ</div>
+        <div class="exec-grid-2">
+          <article class="exec-card">
+            <div class="exec-card-head">
+              <div>
+                <h3>Sales Pipeline</h3>
+                <p>สถานะโอกาสขายโดยรวม</p>
+              </div>
+              <button class="exec-link" type="button" onclick="switchPanelByName('sales')">เปิดฝ่ายขาย</button>
+            </div>
+            <div id="exec-sales-pipeline" class="exec-pipeline"></div>
+          </article>
+
+          <article class="exec-card">
+            <div class="exec-card-head">
+              <div>
+                <h3>สถานะโครงการทั้งหมด</h3>
+                <p>ภาพรวมก่อสร้าง/ผลิต</p>
+              </div>
+              <button class="exec-link" type="button" onclick="switchPanelByName('projects')">เปิดโครงการ</button>
+            </div>
+            <div class="exec-table-wrap">
+              <table class="exec-table">
+                <thead>
+                  <tr><th>โครงการ</th><th>ขั้นตอน</th><th>%</th><th>สถานะ</th></tr>
+                </thead>
+                <tbody id="exec-construction-tbody"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+
+        <div class="exec-section-title">การเงิน, ADS & แจ้งเตือน</div>
+        <div class="exec-grid-3">
+          <article class="exec-card">
+            <div class="exec-card-head">
+              <div>
+                <h3>รายงานการเงิน</h3>
+                <p>รายรับ งวด และยอดค้าง</p>
+              </div>
+              <button class="exec-link" type="button" onclick="switchPanelByName('invoice')">เปิดการเงิน</button>
+            </div>
+            <div class="exec-mini-row"><span>รายรับเดือนนี้</span><b id="exec-finance-income">฿12.4M</b></div>
+            <div class="exec-mini-row"><span>มัดจำรอรับ</span><b id="exec-finance-deposit">฿1.8M</b></div>
+            <div class="exec-mini-row"><span>ยอดค้างชำระ</span><b id="exec-finance-outstanding" class="warn">฿3.2M</b></div>
+            <div class="exec-mini-row"><span>งวดครบกำหนด</span><b id="exec-finance-due">฿620K</b></div>
+            <div class="exec-progress-label"><span>เป้ารายเดือน</span><b id="exec-finance-progress-text">83%</b></div>
+            <div class="exec-progress"><i id="exec-finance-progress" style="width:83%"></i></div>
+          </article>
+
+          <article class="exec-card">
+            <div class="exec-card-head">
+              <div>
+                <h3>ADS วันนี้</h3>
+                <p>ผลการตลาดแบบสรุป</p>
+              </div>
+              <button class="exec-link" type="button" onclick="switchPanelByName('marketing-dept')">เปิดการตลาด</button>
+            </div>
+            <div class="exec-mini-row"><span>Lead Facebook</span><b id="exec-ads-fb">16</b></div>
+            <div class="exec-mini-row"><span>Lead TikTok</span><b id="exec-ads-tt">8</b></div>
+            <div class="exec-mini-row"><span>CPL เฉลี่ย</span><b id="exec-ads-cpl">฿185</b></div>
+            <div class="exec-mini-row"><span>งบที่ใช้วันนี้</span><b id="exec-ads-budget">฿4,440</b></div>
+            <div class="exec-note">คำแนะนำ: ตรวจแคมเปญที่ CPL สูง และเพิ่มงบให้ชุดที่ปิดการขายดี</div>
+          </article>
+
+          <article class="exec-card">
+            <div class="exec-card-head">
+              <div>
+                <h3>แจ้งเตือนด่วน</h3>
+                <p>เรื่องที่ต้องตัดสินใจ</p>
+              </div>
+              <span class="exec-count" id="exec-alert-count">3 รายการ</span>
+            </div>
+            <div id="exec-alert-list" class="exec-alert-list"></div>
+          </article>
+        </div>
+
+        <article class="exec-card">
+          <div class="exec-card-head">
+            <div>
+              <h3>Dashboard ทุกแผนก</h3>
+              <p>สรุปโครงสร้างหลังบ้านตามแผนก</p>
+            </div>
+            <button class="exec-link" type="button" onclick="switchPanelByName('company-backoffice')">เปิดโครงสร้างบริษัท</button>
+          </div>
+          <div class="exec-dept-grid" id="exec-dept-grid"></div>
+        </article>
+      </section>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="quickAdd('sales')"><span>↗</span> เพิ่มรายการขาย</button>
+        <button class="quick-btn" onclick="quickAdd('customers')"><span>◎</span> เพิ่มลูกค้า</button>
+        <button class="quick-btn" onclick="quickAdd('projects')"><span>⬡</span> โปรเจกต์ใหม่</button>
+        <button class="quick-btn" onclick="switchPanelByName('reports')"><span>📊</span> ดูรายงาน</button>
+        <button class="quick-btn" onclick="switchPanelByName('daily-report')"><span>📝</span> รายงานพนักงาน</button>
+        <div class="quick-daily-filter" aria-label="กรองรายงานตามช่วงวันที่">
+          <span class="quick-daily-filter-label"><span>📊</span> กรองตามวันที่</span>
+          <input type="date" id="start_date" value="2026-01-01" aria-label="วันที่เริ่มต้น">
+          <span class="quick-filter-separator">ถึง</span>
+          <input type="date" id="end_date" value="2026-01-15" aria-label="วันที่สิ้นสุด">
+          <button type="button" class="quick-filter-apply" onclick="applyAccountFilter()">🔍 กรองข้อมูล</button>
+        </div>
+      </div>
+
+      <div class="alert-grid" id="dashboard-alerts"></div>
+
+      <!-- KPI Cards Row 1 -->
+      <div class="kpi-grid">
+        <div class="kpi-card accent">
+          <div class="kpi-header"><div class="kpi-label">Sales ทั้งหมด</div><div class="kpi-icon accent">↗</div></div>
+          <div class="kpi-value" id="s-sales">—</div>
+          <div class="kpi-footer"><span class="kpi-change up" id="kpi-sales-change">+12.4%</span><span class="kpi-period">เทียบเดือนที่แล้ว</span></div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-header"><div class="kpi-label">ลูกค้า</div><div class="kpi-icon green">◎</div></div>
+          <div class="kpi-value" id="s-customers">—</div>
+          <div class="kpi-footer"><span class="kpi-change up" id="kpi-customers-change">+8.1%</span><span class="kpi-period">ลูกค้าทั้งหมด</span></div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-header"><div class="kpi-label">สัญญา</div><div class="kpi-icon amber">◻</div></div>
+          <div class="kpi-value" id="s-contracts">—</div>
+          <div class="kpi-footer"><span class="kpi-change up" id="kpi-contracts-change">+3.5%</span><span class="kpi-period">สัญญาที่มีอยู่</span></div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-header"><div class="kpi-label">พนักงาน</div><div class="kpi-icon teal">◷</div></div>
+          <div class="kpi-value" id="s-employees">—</div>
+          <div class="kpi-footer"><span class="kpi-change" id="kpi-employees-change">— คน</span><span class="kpi-period">ในระบบ</span></div>
+        </div>
+      </div>
+
+      <!-- KPI Row 2 -->
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="kpi-card">
+          <div class="kpi-header"><div class="kpi-label">มูลค่างานเพิ่มเติมเดือนนี้</div><div class="kpi-icon teal">⬡</div></div>
+          <div class="kpi-value" id="s-projects" style="color:var(--teal)">—</div>
+          <div class="kpi-footer"><span class="kpi-period">รวมจากงานเพิ่มเติม/งบประมาณ</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header"><div class="kpi-label">มูลค่าสัญญารวมทั้งเดือน</div><div class="kpi-icon accent">≋</div></div>
+          <div class="kpi-value" id="s-activity" style="color:var(--muted)">—</div>
+          <div class="kpi-footer"><span class="kpi-period">เฉพาะสัญญาเดือนปัจจุบัน</span></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header"><div class="kpi-label">มูลค่าสะสมทั้งปี</div><div class="kpi-icon amber">📄</div></div>
+          <div class="kpi-value" id="s-docs" style="color:var(--muted)">—</div>
+          <div class="kpi-footer"><span class="kpi-period">รวมสัญญาและงานเพิ่มเติมปีนี้</span></div>
+        </div>
+      </div>
+
+      <!-- ══ 2-Column Layout: Charts Left | Controls Right ══ -->
+      <div class="dashboard-layout" style="display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start;margin-bottom:20px">
+
+        <!-- LEFT: Charts -->
+        <div id="dashboard-left-column" style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Bar Chart: ภาพรวมสถิติรายเดือน -->
+          <div class="chart-card" style="padding:18px 20px">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">ภาพรวมสถิติรายเดือน</div>
+                <div class="chart-card-sub">กราฟแท่ง · ม.ค. – ธ.ค. <span id="dash-year">2569</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span id="chart-bar-status" style="font-size:10px;color:var(--muted);font-family:var(--mono)">Demo data</span>
+                <select id="bar-year-select" onchange="updateBarYear(this.value)"
+                  style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:11px;padding:4px 8px;border-radius:7px;outline:none;cursor:pointer">
+                  <option value="2569">2569</option>
+                  <option value="2568">2568</option>
+                  <option value="2567">2567</option>
+                </select>
+              </div>
+            </div>
+            <div class="chart-wrapper" style="height:200px">
+              <canvas id="chart-bar"></canvas>
+            </div>
+          </div>
+
+          <!-- Line Chart: แนวโน้มการเติบโต -->
+          <div class="chart-card" style="padding:18px 20px">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">แนวโน้มการเติบโต</div>
+                <div class="chart-card-sub">กราฟเส้น · ยอดขาย ลูกค้า และโปรเจกต์</div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:center">
+                <span style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--text2)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block"></span>Sales
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--text2)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>ลูกค้า
+                </span>
+                <span style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--text2)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block"></span>โปรเจกต์
+                </span>
+              </div>
+            </div>
+            <div class="chart-wrapper" style="height:220px">
+              <canvas id="chart-line"></canvas>
+            </div>
+          </div>
+
+        </div><!-- /LEFT -->
+
+        <!-- RIGHT: Control Panel -->
+        <div id="dashboard-right-column" style="display:flex;flex-direction:column;gap:16px;position:sticky;top:0">
+
+          <!-- Pie Chart + Account Control -->
+          <div class="chart-card" style="padding:18px 20px">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">สัดส่วนลูกค้า</div>
+                <div class="chart-card-sub">กราฟวงกลม · แยกตามสถานะ</div>
+              </div>
+              <select id="account-select" onchange="updatePieChart(this.value)"
+                style="background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:11px;padding:4px 8px;border-radius:7px;outline:none;cursor:pointer;max-width:120px">
+                <option value="all">รวมทุกบัญชี</option>
+                <option value="active">ใช้งาน</option>
+                <option value="pending">รอดำเนินการ</option>
+              </select>
+            </div>
+            <div class="chart-wrapper" style="height:180px">
+              <canvas id="chart-pie"></canvas>
+            </div>
+          </div>
+          <div class="chart-card dashboard-calendar-card" id="dashboard-work-calendar" style="padding:16px">
+            <div class="calendar-dashboard-head">
+              <div>
+                <div class="calendar-dashboard-title">📅 ปฏิทินงาน</div>
+                <div class="calendar-dashboard-sub">วันสำคัญจากสัญญาและโปรเจกต์</div>
+              </div>
+              <div class="calendar-dashboard-controls">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="moveCalendarMonth(-1)" title="เดือนก่อน">←</button>
+                <span class="table-count" id="calendar-month-label">—</span>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="moveCalendarMonth(1)" title="เดือนถัดไป">→</button>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="renderWorkCalendar(true)" title="โหลดข้อมูล">↺</button>
+              </div>
+            </div>
+            <div id="calendar-month"></div>
+            <div class="dashboard-calendar-upcoming">
+              <div class="dashboard-calendar-upcoming-head">
+                <span class="table-title">งานที่กำลังจะถึง</span>
+                <span class="table-count" id="calendar-count">0 รายการ</span>
+              </div>
+              <div id="calendar-list" class="calendar-list"></div>
+            </div>
+            <div class="calendar-appointment-panel">
+              <div class="calendar-appointment-head">
+                <div>
+                  <div class="calendar-appointment-title">ตารางนัดหมายลูกค้าประจำวัน</div>
+                  <div class="calendar-appointment-date" id="calendar-selected-date-label">—</div>
+                </div>
+                <div class="calendar-appointment-actions">
+                  <span class="table-count" id="calendar-appointment-count">0 รายการ</span>
+                  <button class="btn btn-primary btn-sm" type="button" onclick="toggleCalendarAppointmentForm()">+ เพิ่มนัด</button>
+                </div>
+              </div>
+              <div class="calendar-appointment-form" id="calendar-appointment-form">
+                <div class="calendar-appointment-form-grid">
+                  <input class="form-input" id="calendar-appointment-customer" placeholder="ชื่อลูกค้า / บริษัท">
+                  <input class="form-input" id="calendar-appointment-time" type="time" value="10:00">
+                </div>
+                <div class="calendar-appointment-form-grid equal">
+                  <input class="form-input" id="calendar-appointment-topic" placeholder="หัวข้อนัดหมาย">
+                  <input class="form-input" id="calendar-appointment-staff" placeholder="ผู้รับผิดชอบ">
+                </div>
+                <div class="calendar-appointment-form-actions">
+                  <button class="btn btn-ghost btn-sm" type="button" onclick="toggleCalendarAppointmentForm(false)">ยกเลิก</button>
+                  <button class="btn btn-primary btn-sm" type="button" onclick="saveCalendarAppointment()">💾 บันทึกนัดหมาย</button>
+                </div>
+              </div>
+              <div class="calendar-appointment-list" id="calendar-appointment-list"></div>
+            </div>
+          </div>
+        </div><!-- /RIGHT -->
+      </div><!-- /2-col -->
+
+      <!-- Latest Sales Table -->
+      <div class="section-title">รายการขายล่าสุด</div>
+      <div class="table-card">
+        <div id="latest-sales-wrap">
+          <div class="empty"><div class="empty-icon">◈</div><div class="empty-text">ยังไม่ได้เชื่อมต่อ — กรอก URL และ Token ด้านซ้าย</div></div>
+        </div>
+      </div>
+    </div>
+
+        <!-- ── Sales Panel ── -->
+    <div class="panel" id="panel-sales">
+      <div class="sales-code-frame-wrap">
+        <iframe class="sales-code-frame" data-src="crm_pipeline_integrated.html?build=fit-source-3" title="CRM Sales Pipeline" loading="lazy"></iframe>
+      </div>
+      <div class="sales-hub">
+        <div class="sales-hub-hero">
+          <div>
+            <div class="sales-hub-kicker">SALES WORKSPACE</div>
+            <h2>Sales Center</h2>
+            <p>รวมรายการขาย ลูกค้า สัญญา พนักงาน และโปรเจกต์ไว้ในหน้าเดียว</p>
+          </div>
+          <div class="sales-hub-actions">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="refreshSalesHub()">↺ โหลดข้อมูล</button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openAddModal()">+ เพิ่มข้อมูล</button>
+          </div>
+        </div>
+
+        <div class="sales-hub-summary" id="sales-hub-summary"></div>
+
+        <section class="sales-crm" id="sales-crm">
+          <div class="sales-crm-head">
+            <div>
+              <div class="sales-crm-kicker">CRM PIPELINE</div>
+              <h3>Sales Pipeline</h3>
+              <p>ติดตาม Lead ตั้งแต่สนใจจนถึงเซ็นสัญญา</p>
+            </div>
+            <div class="sales-crm-actions">
+              <button class="btn btn-ghost btn-sm" type="button" onclick="switchSalesCrmView('board')">Board</button>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="switchSalesCrmView('list')">รายการ</button>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="switchSalesCrmView('report')">รายงาน</button>
+              <button class="btn btn-primary btn-sm" type="button" onclick="openSalesCrmLead()">+ เพิ่ม Lead</button>
+            </div>
+          </div>
+
+          <div class="sales-crm-kpis" id="sales-crm-kpis"></div>
+
+          <div class="sales-crm-view active" id="sales-crm-board-view">
+            <div class="sales-crm-board" id="sales-crm-board"></div>
+          </div>
+
+          <div class="sales-crm-view" id="sales-crm-list-view">
+            <div class="sales-crm-filter">
+              <input class="form-input" id="sales-crm-search" placeholder="ค้นหาชื่อ / เบอร์ / โครงการ" oninput="renderSalesCrmList()">
+              <select class="form-select" id="sales-crm-stage-filter" onchange="renderSalesCrmList()">
+                <option value="all">ทุกขั้นตอน</option>
+                <option value="new">Lead ใหม่</option>
+                <option value="contacted">ติดต่อแล้ว</option>
+                <option value="appointed">นัดคุย</option>
+                <option value="quoted">เสนอราคา</option>
+                <option value="deposited">มัดจำ</option>
+                <option value="signed">เซ็นสัญญา</option>
+              </select>
+              <select class="form-select" id="sales-crm-source-filter" onchange="renderSalesCrmList()">
+                <option value="all">ทุกแหล่งที่มา</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="Line OA">Line OA</option>
+                <option value="Walk-in">Walk-in</option>
+              </select>
+            </div>
+            <div class="sales-crm-table-wrap">
+              <table class="sales-crm-table">
+                <thead><tr><th>ชื่อ</th><th>เบอร์โทร</th><th>แหล่งที่มา</th><th>โครงการสนใจ</th><th>งบ</th><th>ขั้นตอน</th><th>ระดับ</th><th>ติดตาม</th></tr></thead>
+                <tbody id="sales-crm-list"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="sales-crm-view" id="sales-crm-report-view">
+            <div class="sales-crm-report-grid">
+              <div class="sales-crm-report-card">
+                <h4>Pipeline Funnel</h4>
+                <div id="sales-crm-funnel"></div>
+              </div>
+              <div class="sales-crm-report-card">
+                <h4>แหล่งที่มา Lead</h4>
+                <div id="sales-crm-source"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="sales-hub-tabs" role="tablist" aria-label="Sales workspace modules">
+          <button class="sales-hub-tab active" type="button" data-sales-hub-tab="sales" onclick="openSalesHubTab('sales',this)">รายการขาย</button>
+          <button class="sales-hub-tab" type="button" data-sales-hub-tab="customers" onclick="openSalesHubTab('customers',this)">ลูกค้า</button>
+          <button class="sales-hub-tab" type="button" data-sales-hub-tab="contracts" onclick="openSalesHubTab('contracts',this)">สัญญา</button>
+          <button class="sales-hub-tab" type="button" data-sales-hub-tab="employees" onclick="openSalesHubTab('employees',this)">พนักงาน</button>
+          <button class="sales-hub-tab" type="button" data-sales-hub-tab="projects" onclick="openSalesHubTab('projects',this)">โปรเจกต์</button>
+        </div>
+
+        <div class="sales-hub-pane active" id="sales-hub-pane-sales" data-sales-hub-pane="sales">
+          <div class="table-card" data-sales-hub-card="sales">
+            <div class="table-header">
+              <span class="table-title">รายการขาย</span>
+              <span class="table-count" id="count-sales">0 รายการ</span>
+              <div class="table-actions">
+                <button class="btn btn-ghost btn-sm" onclick="exportCSV('sales')">⬇ ส่งออก</button>
+                <button class="btn btn-ghost btn-sm" onclick="openImportModal('sales')" style="gap:4px">📥 นำเข้า</button>
+                <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ เพิ่ม</button>
+              </div>
+            </div>
+            <div class="table-wrap" id="table-sales"><div class="loading"><span class="spinner"></span>รอเชื่อมต่อ...</div></div>
+            <div class="pagination" id="page-sales"></div>
+          </div>
+        </div>
+        <div class="sales-hub-pane" id="sales-hub-pane-customers" data-sales-hub-pane="customers"></div>
+        <div class="sales-hub-pane" id="sales-hub-pane-contracts" data-sales-hub-pane="contracts"></div>
+        <div class="sales-hub-pane" id="sales-hub-pane-employees" data-sales-hub-pane="employees"></div>
+        <div class="sales-hub-pane" id="sales-hub-pane-projects" data-sales-hub-pane="projects"></div>
+      </div>
+    </div>
+
+    <!-- ── Customers Panel ── -->
+    <div class="panel" id="panel-customers">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">ข้อมูลลูกค้า</span>
+          <span class="table-count" id="count-customers">0 รายการ</span>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="exportCSV('customers')">⬇ Export</button>
+            <button class="btn btn-ghost btn-sm" onclick="openImportModal('customers')" style="gap:4px">📥 Import</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ เพิ่ม</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="table-customers"><div class="loading"><span class="spinner"></span>รอเชื่อมต่อ...</div></div>
+        <div class="pagination" id="page-customers"></div>
+      </div>
+    </div>
+
+    <!-- ── Contracts Panel ── -->
+    <div class="panel" id="panel-contracts">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">สัญญา</span>
+          <span class="table-count" id="count-contracts">0 รายการ</span>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="exportCSV('contracts')">⬇ Export</button>
+            <button class="btn btn-ghost btn-sm" onclick="openImportModal('contracts')" style="gap:4px">📥 Import</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ เพิ่ม</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="table-contracts"><div class="loading"><span class="spinner"></span>รอเชื่อมต่อ...</div></div>
+        <div class="pagination" id="page-contracts"></div>
+      </div>
+    </div>
+
+    <!-- ── Employees Panel ── -->
+    <div class="panel" id="panel-employees">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">พนักงาน</span>
+          <span class="table-count" id="count-employees">0 รายการ</span>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="exportCSV('employees')">⬇ Export</button>
+            <button class="btn btn-ghost btn-sm" onclick="openImportModal('employees')" style="gap:4px">📥 Import</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ เพิ่ม</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="table-employees"><div class="loading"><span class="spinner"></span>รอเชื่อมต่อ...</div></div>
+        <div class="pagination" id="page-employees"></div>
+      </div>
+    </div>
+
+    <!-- ── Projects Panel ── -->
+    <div class="panel" id="panel-projects">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">โปรเจกต์</span>
+          <span class="table-count" id="count-projects">0 รายการ</span>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="exportCSV('projects')">⬇ Export</button>
+            <button class="btn btn-ghost btn-sm" onclick="openImportModal('projects')" style="gap:4px">📥 Import</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ เพิ่ม</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="table-projects"><div class="loading"><span class="spinner"></span>รอเชื่อมต่อ...</div></div>
+        <div class="pagination" id="page-projects"></div>
+      </div>
+    </div>
+
+    <!-- ── Kanban Panel ── -->
+    <div class="panel" id="panel-kanban">
+      <div class="feature-toolbar">
+        <div>
+          <div class="section-title" style="margin:0">Kanban Board</div>
+          <div class="chart-card-sub">ลากดูงานตามสถานะจากข้อมูล Projects หรือ Contracts</div>
+        </div>
+        <select id="kanban-sheet" class="form-select" style="width:180px" onchange="loadKanban()">
+          <option value="projects">Projects</option>
+          <option value="contracts">Contracts</option>
+          <option value="sales">Sales</option>
+        </select>
+      </div>
+      <div class="kanban-wrap" id="kanban-board"></div>
+    </div>
+
+    <!-- ── Invoice Panel ── -->
+    <div class="panel" id="panel-invoice">
+      <div class="feature-toolbar">
+        <div>
+          <div class="section-title" style="margin:0">Invoice Generator</div>
+          <div class="chart-card-sub">สร้างใบแจ้งหนี้จากสัญญาในเครื่อง พร้อมยอด VAT 7%</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="invoice-contract-select" class="form-select" style="width:260px"></select>
+          <button class="btn btn-primary" onclick="generateInvoice()">🧾 สร้างใบแจ้งหนี้</button>
+          <button class="btn btn-ghost" onclick="printInvoice()">🖨️ Print</button>
+        </div>
+      </div>
+      <div id="invoice-preview"><div class="empty"><div class="empty-icon">🧾</div><div class="empty-text">เลือกสัญญาแล้วกดสร้างใบแจ้งหนี้</div></div></div>
+    </div>
+
+    <!-- ── Webhooks Panel ── -->
+    <div class="panel" id="panel-webhooks">
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-card-title">🔔 Webhook Settings</div>
+          <div class="feature-card-sub">บันทึก URL สำหรับแจ้งเตือนเหตุการณ์สำคัญ เช่น เพิ่มข้อมูล ลบข้อมูล หรือสัญญาใกล้ครบกำหนด</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">Local-first</div>
+          <div class="feature-card-sub">ตอนนี้เก็บค่าไว้ในเครื่องก่อน ยังไม่ส่งออกจริง เพื่อไม่ให้ข้อมูลรั่วโดยไม่ได้ตั้งใจ</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-card-title">พร้อมต่อยอด</div>
+          <div class="feature-card-sub">เมื่อมี server/API จริง สามารถต่อยิง webhook จาก audit log ได้ทันที</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Webhook URLs</span>
+          <div class="table-actions"><button class="btn btn-primary btn-sm" onclick="addWebhook()">+ เพิ่ม Webhook</button></div>
+        </div>
+        <div class="modal-body" style="padding:16px">
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">ชื่อ Webhook</label><input class="form-input" id="webhook-name" placeholder="เช่น LINE Notify"></div>
+            <div class="form-group"><label class="form-label">URL</label><input class="form-input" id="webhook-url" placeholder="https://example.com/webhook"></div>
+          </div>
+          <div class="settings-list" id="webhook-list" style="margin-top:14px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Custom Fields Panel ── -->
+    <div class="panel" id="panel-custom-fields">
+      <div class="custom-fields-shell custom-fields-page">
+        <div class="custom-fields-top">
+          <div>
+            <div class="custom-fields-title">📝 ตั้งค่าช่องข้อมูลอิสระของโมดูล: <span id="custom-field-active-title" style="color:var(--accent)">Sales</span></div>
+            <div class="custom-fields-sub">เลือกโมดูลแล้วปรับฟอร์มได้อิสระ แก้หัวข้อ เพิ่ม ลบ และเรียงลำดับได้ทันที</div>
+            <div class="custom-fields-status-row">
+              <span class="custom-fields-live-dot"></span>
+              <span>Admin เท่านั้นที่แก้ไขได้ ข้อมูลจะผูกเข้าฟอร์มเพิ่ม/แก้ไขของโมดูลนั้นทันที</span>
+              <span class="custom-fields-pill" id="custom-field-active-count">0 ช่อง</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="resetCustomFieldsForModule()">🔄 รีเซ็ตโมดูลนี้</button>
+        </div>
+
+        <div class="custom-fields-workbench">
+          <aside class="custom-module-rail">
+            <div class="custom-module-rail-title">ข้อมูล</div>
+            <select class="form-select" id="custom-field-sheet" onchange="changeCustomFieldModule()" style="display:none">
+              <option value="sales">Sales</option>
+              <option value="customers">Customers</option>
+              <option value="contracts">Contracts</option>
+              <option value="employees">Employees</option>
+              <option value="projects">Projects</option>
+            </select>
+            <div class="custom-module-list" id="custom-module-list"></div>
+          </aside>
+
+          <div class="custom-module-main">
+            <div class="custom-field-builder-card">
+              <div class="custom-field-builder-grid">
+                <div class="form-group">
+                  <label class="form-label">โมดูลที่เลือก</label>
+                  <input class="form-input" id="custom-field-module-label" value="Sales" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">รูปแบบช่อง</label>
+                  <select class="form-select" id="custom-field-type" onchange="toggleCustomFieldOptions()">
+                    <option value="text">ข้อความสั้น (text)</option>
+                    <option value="textarea">ข้อความยาว (textarea)</option>
+                    <option value="number">ตัวเลข/เงิน (number)</option>
+                    <option value="date">วันที่ (date)</option>
+                    <option value="select">ตัวเลือก Dropdown</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ชื่อช่องใหม่</label>
+                  <input class="form-input" id="custom-field-name" placeholder="เช่น เลขที่เอกสาร, ยอดขายประจำวัน..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomField();}">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Placeholder</label>
+                  <div class="custom-field-add-row">
+                    <input class="form-input" id="custom-field-placeholder" placeholder="เช่น กรอกยอดขายสุทธิ..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomField();}">
+                    <button class="btn btn-primary" onclick="addCustomField()">+ เพิ่มช่อง</button>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" id="custom-field-options-wrap" style="display:none;margin-top:12px">
+                <label class="form-label">ตัวเลือก Dropdown</label>
+                <input class="form-input" id="custom-field-options" placeholder="เช่น ใช้งาน, รอดำเนินการ, เสร็จสิ้น" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomField();}">
+              </div>
+              <div class="custom-field-option-grid">
+                <label class="custom-field-check"><input type="checkbox" id="custom-field-required"> บังคับกรอกช่องนี้</label>
+                <div class="form-group">
+                  <label class="form-label">ตำแหน่งที่มองเห็น</label>
+                  <select class="form-select" id="custom-field-visible-position">
+                    <option value="">ทุกตำแหน่ง</option>
+                  </select>
+                </div>
+              </div>
+              <div class="custom-field-toolbar">
+                <button class="btn btn-ghost btn-sm" onclick="exportCustomFieldConfig()">⬇ Export Config</button>
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('custom-field-import-file').click()">⬆ Import Config</button>
+                <input type="file" id="custom-field-import-file" accept="application/json,.json" style="display:none" onchange="importCustomFieldConfig(this)">
+              </div>
+              <div class="custom-field-helper">💡 ช่องด้านล่างคือฟอร์มจริงของโมดูลที่เลือก กดแก้ชื่อแล้วระบบจะเปลี่ยนหัวข้อในฟอร์มเพิ่ม/แก้ไขทันที · ถ้าช่องมีข้อมูลแล้ว ระบบจะซ่อนแทนการลบถาวร</div>
+            </div>
+
+            <div class="custom-field-list-card">
+              <div class="custom-field-list-head">
+                <div>
+                  <div class="feature-card-title" id="custom-field-list-title">รายการช่องปัจจุบัน</div>
+                  <div class="feature-card-sub">แก้ชื่อ เปลี่ยนรูปแบบ เลื่อนลำดับ หรือลบช่องได้จากรายการนี้</div>
+                </div>
+                <span class="table-count" id="custom-field-count">0 ช่อง</span>
+              </div>
+              <div class="settings-list custom-field-scroll" id="custom-field-list"></div>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card-title">ตัวอย่างฟอร์มสด</div>
+              <div class="feature-card-sub">Preview นี้อัปเดตทันทีเมื่อเพิ่ม ลบ แก้ชื่อ เปลี่ยนรูปแบบ หรือเรียงลำดับช่อง</div>
+              <div class="form-group" style="margin-top:12px">
+                <label class="form-label">Preview ตามตำแหน่ง</label>
+                <select class="form-select" id="custom-field-preview-position" onchange="renderCustomFields()">
+                  <option value="">ทุกตำแหน่ง</option>
+                </select>
+              </div>
+              <div id="custom-field-preview" style="margin-top:14px"></div>
+            </div>
+
+            <div class="feature-card">
+              <div class="feature-card-title">ประวัติการแก้ไข Custom Fields</div>
+              <div class="feature-card-sub">เก็บประวัติการเพิ่ม แก้ไข Duplicate ซ่อน ลบ รีเซ็ต Import และ Export</div>
+              <div class="custom-field-audit-list" id="custom-field-audit-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Reports Panel ── -->
+    <div class="panel" id="panel-reports">
+      <div class="section-title">สรุปภาพรวม</div>
+      <div class="report-grid">
+        <div class="report-stat">
+          <div class="report-stat-label">รายได้รวมโดยประมาณ</div>
+          <div class="report-stat-value" id="rpt-revenue">—</div>
+          <div class="report-stat-sub">จาก Sales ในระบบ</div>
+        </div>
+        <div class="report-stat">
+          <div class="report-stat-label">อัตราสัญญา Active</div>
+          <div class="report-stat-value" id="rpt-contract-rate">—</div>
+          <div class="report-stat-sub">เปอร์เซ็นต์สัญญาที่ใช้งานอยู่</div>
+        </div>
+        <div class="report-stat">
+          <div class="report-stat-label">โปรเจกต์เสร็จสิ้น</div>
+          <div class="report-stat-value" id="rpt-projects-done">—</div>
+          <div class="report-stat-sub">จากโปรเจกต์ทั้งหมด</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:8px">กราฟวิเคราะห์</div>
+      <div class="charts-grid" style="margin-bottom:20px">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">ยอดขายแยกรายเดือน</div>
+              <div class="chart-card-sub">รวมทั้งปี</div>
+            </div>
+          </div>
+          <div class="chart-wrapper" style="height:220px">
+            <canvas id="rpt-chart-bar"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">สถานะสัญญา</div>
+              <div class="chart-card-sub">แบ่งตามประเภท</div>
+            </div>
+          </div>
+          <div class="chart-wrapper" style="height:220px">
+            <canvas id="rpt-chart-pie"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">ตารางสรุป Sales ทั้งหมด</div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Sales Summary</span>
+          <span class="table-count" id="rpt-count">0 รายการ</span>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="exportCSV('sales')">⬇ Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap" id="rpt-table"><div class="empty"><div class="empty-icon">📊</div><div class="empty-text">เชื่อมต่อเพื่อดูรายงาน</div></div></div>
+      </div>
+    </div>
+
+    <!-- ── Daily Report Panel ── -->
+    <div class="panel" id="panel-daily-report">
+      <div class="daily-report-card">
+        <div class="daily-report-head">
+          <h3 class="daily-report-title">📝 บันทึกรายงานประจำวัน</h3>
+          <span class="daily-report-date" id="currentDateLabel">—</span>
+        </div>
+        <form class="daily-report-body" onsubmit="saveDailyReport(event)">
+          <div class="daily-report-profile" id="daily-report-profile"></div>
+          <div class="daily-report-form-note" id="daily-report-form-note"></div>
+          <div id="daily-report-fields" class="daily-dynamic-fields"></div>
+          <div class="daily-report-actions">
+            <button type="button" class="btn btn-ghost" onclick="resetDailyReportForm()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary">💾 บันทึกและส่งรายงาน</button>
+          </div>
+        </form>
+      </div>
+      <div class="daily-report-list">
+        <div class="table-header" style="padding-left:0;padding-right:0">
+          <div style="display:flex;align-items:center;gap:10px;min-width:0">
+            <span class="table-title">รายงานล่าสุด</span>
+            <span class="table-count" id="daily-report-count">0 รายการ</span>
+          </div>
+          <div class="daily-report-tools">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="exportDailyReportsCSV()">⬇ Sheet CSV</button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="downloadDailyReportsPDF()">📄 โหลด PDF</button>
+          </div>
+        </div>
+        <div id="daily-report-admin-filters" class="daily-report-admin-filters" hidden></div>
+        <div id="daily-report-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Marketing Department Panel ── -->
+    <div class="panel" id="panel-marketing-dept">
+      <div class="marketing-dept-page">
+        <div class="marketing-dept-header">
+          <div>
+            <div class="marketing-dept-kicker">MARKETING DATA</div>
+            <h2>📢 แผนกการตลาด</h2>
+            <p>ข้อมูลและงานประจำของทีมการตลาด: ADS, Content, Social และการวิเคราะห์ผล</p>
+          </div>
+          <div class="marketing-dept-actions">
+            <button class="btn btn-primary btn-sm" type="button" onclick="marketingShowDemo()">✨ วิเคราะห์ Demo</button>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="switchPanelByName('company-backoffice')">🏢 ผังบริษัท</button>
+          </div>
+        </div>
+
+        <section class="marketing-ads-manager">
+          <div class="marketing-ads-head">
+            <div>
+              <div class="marketing-dept-card-title">ADS Live Dashboard</div>
+              <div class="marketing-dept-card-sub">ภาพรวม Facebook และ TikTok Ads แบบจัดกลุ่มตาม Account พร้อม KPI และสถานะแคมเปญ</div>
+            </div>
+            <div class="marketing-live-actions">
+              <span class="marketing-live-time" id="marketing-live-update">อัปเดตล่าสุด: Demo</span>
+              <span class="marketing-live-status" id="marketing-live-status"><i></i> Demo Data</span>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="refreshMarketingLiveDashboard()">↺ Refresh</button>
+              <button class="btn btn-primary btn-sm" type="button" onclick="openMarketingCampaignModal()">+ เพิ่มแคมเปญ</button>
+            </div>
+          </div>
+
+          <div class="marketing-connect-banner" id="marketing-connect-banner">
+            <div>
+              <b>ADS Manager ใช้ข้อมูล Demo/Manual ในระบบ</b>
+              <span>สามารถเพิ่มแคมเปญและติดตามผลรายแคมเปญได้จากแท็บด้านล่าง</span>
+            </div>
+            <div>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="switchMarketingAdsTab('campaigns',document.querySelector('[data-marketing-tab=&quot;campaigns&quot;]'))">ดูรายแคมเปญ</button>
+            </div>
+          </div>
+
+          <div class="marketing-ads-tabs" role="tablist" aria-label="Marketing ads tabs">
+            <button class="marketing-ads-tab active" type="button" data-marketing-tab="overview" onclick="switchMarketingAdsTab('overview',this)">ภาพรวม</button>
+            <button class="marketing-ads-tab" type="button" data-marketing-tab="campaigns" onclick="switchMarketingAdsTab('campaigns',this)">รายแคมเปญ</button>
+            <button class="marketing-ads-tab" type="button" data-marketing-tab="history" onclick="switchMarketingAdsTab('history',this)">🕘 ประวัติ</button>
+          </div>
+
+          <div class="marketing-ads-pane active" id="marketing-ads-overview">
+            <div class="marketing-budget-card">
+              <div class="marketing-budget-row">
+                <span>งบโฆษณาทั้งเดือน</span>
+                <input id="marketing-budget-total" type="number" value="150000" min="0" onchange="renderMarketingDepartment()">
+                <b id="marketing-budget-used-label">฿0</b>
+                <small id="marketing-budget-left-label">เหลือ ฿0</small>
+              </div>
+              <div class="marketing-budget-progress"><div id="marketing-budget-progress-fill"></div></div>
+              <div class="marketing-budget-sub" id="marketing-budget-percent-label">ใช้ไปแล้ว 0% ของงบทั้งเดือน</div>
+            </div>
+            <div id="marketing-overview-grid" class="marketing-live-kpi-grid"></div>
+            <div id="marketing-platform-overview" class="marketing-live-account-list"></div>
+            <div class="marketing-ai-box" id="marketing-overview-ai"></div>
+          </div>
+
+          <div class="marketing-ads-pane" id="marketing-ads-campaigns">
+            <div class="marketing-campaign-filter-row">
+              <div>
+                <select id="marketing-filter-platform" class="marketing-filter-input" onchange="renderMarketingCampaigns()">
+                  <option value="all">ทุก Platform</option>
+                  <option value="FB">Facebook</option>
+                  <option value="TT">TikTok</option>
+                </select>
+                <select id="marketing-filter-status" class="marketing-filter-input" onchange="renderMarketingCampaigns()">
+                  <option value="all">ทุกสถานะ</option>
+                  <option value="active">กำลังรัน</option>
+                  <option value="paused">พักไว้</option>
+                  <option value="ended">จบแล้ว</option>
+                </select>
+              </div>
+              <span id="marketing-campaign-count" class="table-count"></span>
+            </div>
+            <div class="marketing-campaign-table-wrap">
+              <table class="marketing-campaign-table">
+                <thead><tr><th></th><th>ชื่อแคมเปญ</th><th>งบ/วัน</th><th>ใช้แล้ว</th><th>Lead</th><th>CPL</th><th>CTR</th><th>สถานะ</th><th></th></tr></thead>
+                <tbody id="marketing-campaign-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="marketing-ads-pane" id="marketing-ads-history">
+            <div class="marketing-history-card">
+              <div class="marketing-dept-card-title">ประวัติการอัปโหลด 7 วันล่าสุด</div>
+              <div class="marketing-history-wrap">
+                <table class="marketing-history-table">
+                  <thead><tr><th>วันที่</th><th>Platform</th><th>Lead</th><th>CPL</th><th>งบ</th></tr></thead>
+                  <tbody id="marketing-history-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="marketing-campaign-modal" id="marketing-campaign-modal" aria-hidden="true">
+            <div class="marketing-campaign-dialog" role="dialog" aria-modal="true" aria-labelledby="marketing-campaign-modal-title">
+              <div class="marketing-campaign-modal-head">
+                <div id="marketing-campaign-modal-title">เพิ่มแคมเปญใหม่</div>
+                <button type="button" onclick="closeMarketingCampaignModal()" aria-label="ปิด">×</button>
+              </div>
+              <div class="marketing-campaign-form">
+                <label class="full"><span>ชื่อแคมเปญ *</span><input id="marketing-campaign-name" type="text" placeholder="เช่น บ้านเดี่ยว 3 ห้องนอน"></label>
+                <label><span>Platform *</span><select id="marketing-campaign-platform"><option value="FB">Facebook / Meta</option><option value="TT">TikTok</option></select></label>
+                <label><span>สถานะ</span><select id="marketing-campaign-status"><option value="active">กำลังรัน</option><option value="paused">พักไว้</option><option value="ended">จบแล้ว</option></select></label>
+                <label><span>งบ/วัน (บาท)</span><input id="marketing-campaign-budget" type="number" min="0" placeholder="0"></label>
+                <label><span>งบที่ใช้จริง (บาท)</span><input id="marketing-campaign-spent" type="number" min="0" placeholder="0"></label>
+                <label><span>Lead</span><input id="marketing-campaign-lead" type="number" min="0" placeholder="0"></label>
+                <label><span>CTR (%)</span><input id="marketing-campaign-ctr" type="number" min="0" step="0.1" placeholder="0"></label>
+                <label><span>Reach</span><input id="marketing-campaign-reach" type="number" min="0" placeholder="0"></label>
+                <label><span>Impression</span><input id="marketing-campaign-impression" type="number" min="0" placeholder="0"></label>
+                <label class="full"><span>หมายเหตุ</span><input id="marketing-campaign-note" type="text" placeholder="เช่น รอ Creative ใหม่"></label>
+              </div>
+              <div class="marketing-campaign-modal-foot">
+                <button id="marketing-campaign-delete" class="btn btn-danger btn-sm" type="button" onclick="deleteMarketingCampaign()" style="display:none">ลบ</button>
+                <div>
+                  <button class="btn btn-ghost" type="button" onclick="closeMarketingCampaignModal()">ยกเลิก</button>
+                  <button class="btn btn-primary" type="button" onclick="saveMarketingCampaign()">บันทึก</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- ── Marketing Media Contracts Panel ── -->
+    <div class="panel" id="panel-marketing-contracts">
+      <div class="marketing-dept-page">
+        <div class="marketing-dept-header">
+          <div>
+            <div class="marketing-dept-kicker">MARKETING CONTRACTS</div>
+            <h2>🪧 สัญญาสื่อ / ป้ายโฆษณา</h2>
+            <p>ติดตามวันหมดอายุ ค่าเช่า รูปป้าย และแจ้งเตือนก่อนต่อสัญญา เฉพาะแผนกการตลาด</p>
+          </div>
+          <div class="marketing-dept-actions">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="switchPanelByName('marketing-dept')">← ADS Manager</button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openMarketingContractForm()">+ เพิ่มสัญญา</button>
+          </div>
+        </div>
+
+        <section class="marketing-contracts-panel">
+          <div class="marketing-contracts-head">
+            <div>
+              <div class="marketing-dept-card-title">สัญญาสื่อ / ป้ายโฆษณา</div>
+              <div class="marketing-dept-card-sub">ติดตามวันหมดอายุ ค่าเช่า และแจ้งเตือนก่อนต่อสัญญา เฉพาะแผนกการตลาด</div>
+            </div>
+            <div class="marketing-contracts-actions">
+              <label class="marketing-notify-row">แจ้งเตือนก่อน <input id="marketing-contract-notify-days" type="number" min="1" max="180" value="30" onchange="renderMarketingContracts()"> วัน</label>
+              <button class="btn btn-primary btn-sm" type="button" onclick="openMarketingContractForm()">+ เพิ่มสัญญา</button>
+            </div>
+          </div>
+          <div id="marketing-contract-warning"></div>
+          <div class="marketing-contract-stat-grid" id="marketing-contract-stat-grid"></div>
+          <div class="marketing-contract-table-wrap">
+            <table class="marketing-contract-table">
+              <thead>
+                <tr>
+                  <th>สื่อ/ป้าย</th><th>สถานที่</th><th>ประเภท</th><th>หมดอายุ</th><th>ต่อสัญญา</th><th>เหลือ</th><th>สถานะ</th><th>ค่าเช่า</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="marketing-contract-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="marketing-contract-modal" id="marketing-contract-modal" aria-hidden="true">
+          <div class="marketing-contract-dialog" role="dialog" aria-modal="true" aria-labelledby="marketing-contract-modal-title">
+            <div class="marketing-contract-modal-head">
+              <div id="marketing-contract-modal-title">▧ เพิ่มสัญญาป้ายใหม่</div>
+              <button type="button" class="marketing-contract-close" onclick="closeMarketingContractForm()" aria-label="ปิด">×</button>
+            </div>
+            <div class="marketing-contract-form">
+              <label class="marketing-contract-field full">
+                <span>ชื่อป้าย / รายละเอียด</span>
+                <input id="marketing-contract-name" type="text" placeholder="เช่น ป้าย Billboard ถนนสุขุมวิท">
+              </label>
+              <label class="marketing-contract-field full">
+                <span>ที่ตั้ง / สถานที่</span>
+                <input id="marketing-contract-location" type="text" placeholder="เช่น หน้าห้างสรรพสินค้า XYZ">
+              </label>
+              <label class="marketing-contract-field">
+                <span>วันเริ่มสัญญา</span>
+                <input id="marketing-contract-start" type="date">
+              </label>
+              <label class="marketing-contract-field">
+                <span>วันหมดอายุสัญญา</span>
+                <input id="marketing-contract-end" type="date">
+              </label>
+              <label class="marketing-contract-field">
+                <span>ค่าเช่า (บาท/เดือน)</span>
+                <input id="marketing-contract-cost" type="number" min="0" placeholder="0">
+              </label>
+              <label class="marketing-contract-field">
+                <span>ประเภทป้าย</span>
+                <input id="marketing-contract-type" type="text" placeholder="เช่น Billboard, ป้ายไฟ">
+              </label>
+              <label class="marketing-contract-field full">
+                <span>หมายเหตุ</span>
+                <input id="marketing-contract-note" type="text" placeholder="เช่น ต้องต่อสัญญาล่วงหน้า 2 สัปดาห์">
+              </label>
+              <div class="marketing-contract-field full">
+                <span>รูปภาพป้าย</span>
+                <button class="marketing-contract-upload" id="marketing-contract-upload-zone" type="button" onclick="document.getElementById('marketing-contract-photo').click()">
+                  <span>▣</span>
+                  <b>แตะเพื่อแนบรูปป้าย</b>
+                  <small>PNG, JPG</small>
+                </button>
+                <input id="marketing-contract-photo" type="file" accept="image/*" style="display:none" onchange="previewMarketingContractPhoto(this)">
+                <div class="marketing-contract-preview" id="marketing-contract-preview" hidden>
+                  <img id="marketing-contract-preview-img" alt="รูปป้าย">
+                  <button type="button" onclick="removeMarketingContractPhoto()">×</button>
+                </div>
+              </div>
+            </div>
+            <div class="marketing-contract-modal-foot">
+              <button type="button" class="btn btn-ghost" onclick="closeMarketingContractForm()">ยกเลิก</button>
+              <button type="button" class="btn btn-primary" onclick="saveMarketingContractForm()">✓ บันทึกสัญญา</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Connected Department Systems ── -->
+    <div class="panel" id="panel-lead-connect">
+      <div class="lead-code-frame-wrap">
+        <iframe class="lead-code-frame" data-src="lead_connect_integrated.html?build=fit-source-3" title="Lead Connect" loading="lazy"></iframe>
+      </div>
+      <div class="ops-template ops-lead-page">
+        <div class="ops-template-topbar">
+          <div>
+            <h2>🔗 Lead Connect</h2>
+            <p>เชื่อมต่อ Lead จากทีมการตลาดส่งตรงสู่ CRM ทีมขาย</p>
+          </div>
+        </div>
+        <div class="ops-template-kpis" id="lead-connect-kpis"></div>
+        <div class="ops-template-tabs">
+          <button class="ops-template-tab active" type="button" data-template-tab="lead-send" onclick="switchOpsTemplateTab('lead','send',this)">📤 ส่ง Lead ใหม่</button>
+          <button class="ops-template-tab" type="button" data-template-tab="lead-inbox" onclick="switchOpsTemplateTab('lead','inbox',this)">📥 กล่องรับ Lead (ทีมขาย)</button>
+          <button class="ops-template-tab" type="button" data-template-tab="lead-history" onclick="switchOpsTemplateTab('lead','history',this)">📋 ประวัติ Lead ทั้งหมด</button>
+        </div>
+        <div class="ops-template-panel active" id="lead-panel-send">
+          <div class="ops-success" id="lead-send-success" hidden>✅ ส่ง Lead ไปยังทีมขายแล้ว — ทีมขายจะเห็นใน "กล่องรับ Lead" ทันที</div>
+          <section class="ops-flow-card">
+            <div class="ops-flow-header">
+              <div class="ops-flow-num">1</div>
+              <div><b>ข้อมูล Lead</b><span>กรอกข้อมูลที่ได้จากโฆษณา</span></div>
+            </div>
+            <div class="ops-form-grid">
+              <label><span>ชื่อ - นามสกุล *</span><input class="ops-input" id="sf-name" placeholder="เช่น คุณสมชาย ใจดี"></label>
+              <label><span>เบอร์โทร *</span><input class="ops-input" id="sf-phone" placeholder="08x-xxx-xxxx" type="tel"></label>
+              <label><span>Line ID</span><input class="ops-input" id="sf-line" placeholder="@lineid"></label>
+              <label><span>แหล่งที่มา *</span><select class="ops-input" id="sf-source"><option>Facebook Ads</option><option>TikTok</option><option>Line OA</option><option>Inbox/DM</option><option>อื่นๆ</option></select></label>
+            </div>
+          </section>
+          <section class="ops-flow-card">
+            <div class="ops-flow-header">
+              <div class="ops-flow-num">2</div>
+              <div><b>รายละเอียดความสนใจ</b><span>ข้อมูลที่ Lead แจ้งมา</span></div>
+            </div>
+            <div class="ops-form-grid">
+              <label><span>แคมเปญที่มาจาก</span><input class="ops-input" id="sf-campaign" placeholder="เช่น บ้านเดี่ยว 3ห้องนอน"></label>
+              <label><span>งบประมาณ (ถ้ามี)</span><input class="ops-input" id="sf-budget" type="number" placeholder="เช่น 3500000"></label>
+              <label class="full"><span>โครงการ / แบบที่สนใจ</span><input class="ops-input" id="sf-interest" placeholder="เช่น บ้านเดี่ยว 2ชั้น ใกล้ BTS"></label>
+              <label><span>ระดับความสนใจ</span><select class="ops-input" id="sf-score"><option value="hot">🔥 Hot — สนใจมาก พร้อมคุย</option><option value="warm">🌤 Warm — สนใจพอควร</option><option value="cold">❄️ Cold — แค่ถามข้อมูล</option></select></label>
+              <label><span>มอบหมายให้</span><select class="ops-input" id="sf-assign"><option>คุณสมหญิง</option><option>คุณวิชัย</option><option>ทีมขาย</option></select></label>
+              <label class="full"><span>หมายเหตุจากทีมการตลาด</span><textarea class="ops-input" id="sf-note" placeholder="เช่น ลูกค้าสอบถามเรื่องดาวน์ บอกว่าพร้อมเข้าชมโครงการ..."></textarea></label>
+            </div>
+          </section>
+          <div class="ops-template-actions"><button class="btn btn-primary" type="button" onclick="sendLeadToSalesSystem()">📤 ส่ง Lead ไปยังทีมขาย</button></div>
+        </div>
+        <div class="ops-template-panel" id="lead-panel-inbox">
+          <section class="ops-card">
+            <div class="ops-table-wrap">
+              <table class="ops-table"><thead><tr><th>ชื่อ</th><th>เบอร์</th><th>แหล่งที่มา</th><th>แคมเปญ</th><th>ระดับ</th><th>มอบหมาย</th><th>เวลาส่ง</th><th>สถานะ</th><th></th></tr></thead><tbody id="lead-inbox-tbody"></tbody></table>
+            </div>
+          </section>
+        </div>
+        <div class="ops-template-panel" id="lead-panel-history">
+          <section class="ops-card">
+            <div class="ops-card-head">
+              <div><b>Lead ทั้งหมด</b><span id="lead-hist-count">0 รายการ</span></div>
+            </div>
+            <div class="ops-table-wrap">
+              <table class="ops-table"><thead><tr><th>ชื่อ</th><th>แหล่งที่มา</th><th>แคมเปญ</th><th>ระดับ</th><th>มอบหมาย</th><th>ส่งเมื่อ</th><th>สถานะ</th><th>ผลลัพธ์</th></tr></thead><tbody id="lead-history-tbody"></tbody></table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-construction">
+      <div class="construction-code-frame-wrap">
+        <iframe class="construction-code-frame" data-src="construction_integrated.html?build=fit-source-3" title="Construction Tracking" loading="lazy"></iframe>
+      </div>
+      <div class="ops-template ops-construction-page">
+        <div class="ops-template-topbar">
+          <div>
+            <h2>🏗 Construction — ติดตามงานก่อสร้าง</h2>
+            <p>ติดตามสถานะงานก่อสร้างทุกโครงการ พร้อมแจ้งเตือนงานล่าช้า</p>
+          </div>
+          <button class="btn btn-primary btn-sm" type="button" onclick="openConstructionAddProject()">+ เพิ่มโครงการ</button>
+        </div>
+        <div class="ops-template-kpis" id="construction-kpis"></div>
+        <div class="ops-template-tabs">
+          <button class="ops-template-tab active" type="button" onclick="switchOpsTemplateTab('construction','grid',this)">🗂 Card View</button>
+          <button class="ops-template-tab" type="button" onclick="switchOpsTemplateTab('construction','list',this)">📄 List View</button>
+        </div>
+        <div class="ops-template-panel active" id="construction-panel-grid">
+          <div class="ops-project-grid" id="construction-project-grid"></div>
+        </div>
+        <div class="ops-template-panel" id="construction-panel-list">
+          <section class="ops-card">
+            <div class="ops-table-wrap">
+              <table class="ops-table"><thead><tr><th>โครงการ</th><th>ลูกค้า</th><th>ขั้นตอนปัจจุบัน</th><th>%</th><th>เริ่ม</th><th>กำหนดส่ง</th><th>สถานะ</th><th></th></tr></thead><tbody id="construction-table"></tbody></table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-finance">
+      <div class="finance-code-frame-wrap">
+        <iframe class="finance-code-frame" data-src="finance_integrated.html?build=fit-source-3" title="Finance Installments" loading="lazy"></iframe>
+      </div>
+      <div class="ops-template ops-finance-page">
+        <div class="ops-template-topbar">
+          <div>
+            <h2>💰 Finance — งวดชำระ</h2>
+            <p>ติดตามการชำระเงิน มัดจำ งวด และยอดค้างทุกสัญญา</p>
+          </div>
+          <button class="btn btn-primary btn-sm" type="button" onclick="openFinanceAddContract()">+ เพิ่มสัญญา</button>
+        </div>
+        <div class="ops-alert" id="finance-alert" hidden></div>
+        <div class="ops-template-kpis" id="finance-kpis"></div>
+        <div class="ops-template-tabs">
+          <button class="ops-template-tab active" type="button" onclick="switchOpsTemplateTab('finance','contracts',this)">📋 สัญญาทั้งหมด</button>
+          <button class="ops-template-tab" type="button" onclick="switchOpsTemplateTab('finance','overdue',this)">⚠️ ค้างชำระ</button>
+          <button class="ops-template-tab" type="button" onclick="switchOpsTemplateTab('finance','upcoming',this)">📅 ครบกำหนดเร็วๆ นี้</button>
+          <button class="ops-template-tab" type="button" onclick="switchOpsTemplateTab('finance','summary',this)">📊 สรุปรายรับ</button>
+        </div>
+        <div class="ops-template-panel active" id="finance-panel-contracts">
+          <section class="ops-card"><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>ลูกค้า</th><th>โครงการ</th><th>มูลค่าสัญญา</th><th>รับแล้ว</th><th>ค้างชำระ</th><th>ความคืบหน้า</th><th>สถานะ</th><th></th></tr></thead><tbody id="finance-table"></tbody></table></div></section>
+        </div>
+        <div class="ops-template-panel" id="finance-panel-overdue">
+          <section class="ops-card"><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>ลูกค้า</th><th>งวดที่</th><th>ยอดค้าง</th><th>ครบกำหนด</th><th>เกินมาแล้ว</th><th>สถานะ</th><th></th></tr></thead><tbody id="finance-overdue-tbody"></tbody></table></div></section>
+        </div>
+        <div class="ops-template-panel" id="finance-panel-upcoming">
+          <section class="ops-card"><div class="ops-table-wrap"><table class="ops-table"><thead><tr><th>ลูกค้า</th><th>งวดที่</th><th>ยอดชำระ</th><th>ครบกำหนด</th><th>เหลืออีก</th><th>สถานะ</th><th></th></tr></thead><tbody id="finance-upcoming-tbody"></tbody></table></div></section>
+        </div>
+        <div class="ops-template-panel" id="finance-panel-summary">
+          <div class="ops-grid-2">
+            <section class="ops-card"><div class="ops-card-head"><div><b>รายรับรายเดือน (6 เดือนล่าสุด)</b></div></div><div class="ops-bars" id="finance-monthly-bars"></div></section>
+            <section class="ops-card"><div class="ops-card-head"><div><b>สัดส่วนสถานะงวด</b></div></div><div class="ops-status-list" id="finance-status-list"></div></section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ops-modal" id="ops-form-modal" aria-hidden="true">
+      <div class="ops-modal-dialog">
+        <div class="ops-modal-head">
+          <b id="ops-form-modal-title">เพิ่มข้อมูล</b>
+          <button type="button" onclick="closeOpsFormModal()">×</button>
+        </div>
+        <div id="ops-form-modal-body" class="ops-form-grid"></div>
+        <div class="ops-template-actions">
+          <button class="btn btn-ghost" type="button" onclick="closeOpsFormModal()">ยกเลิก</button>
+          <button class="btn btn-primary" type="button" onclick="saveOpsFormModal()">💾 บันทึก</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-calendar">
+      <div class="calendar-code-frame-wrap">
+        <iframe class="calendar-code-frame" data-src="calendar_integrated.html?build=fit-source-3" title="Appointment Calendar" loading="lazy"></iframe>
+      </div>
+    </div>
+
+    <!-- Legacy connected-system panels removed from view by the updated template above. -->
+    <div style="display:none">
+      <div class="panel" id="panel-construction-legacy">
+        <div>
+          <div>
+            <div>
+              <div>
+                <b></b>
+                <span></span>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Activity Panel ── -->
+    <div class="panel" id="panel-activity">
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Activity Log</span>
+          <span class="table-count" id="count-activity">0 รายการ</span>
+          <div class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="loadActivity(1)">↺ รีเฟรช</button>
+          </div>
+        </div>
+        <div id="activity-list-wrap"><div class="loading"><span class="spinner"></span>รอเชื่อมต่อ...</div></div>
+        <div class="pagination" id="page-activity"></div>
+      </div>
+    </div>
+
+    <!-- ── AI Insight Panel ── -->
+    <div class="panel" id="panel-ai">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)">🤖 AI Insight</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">สรุปจุดที่ควรดูจากข้อมูลในระบบแบบ offline</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="renderAIInsights()">↺ วิเคราะห์ใหม่</button>
+      </div>
+      <div id="ai-insight-list"></div>
+    </div>
+
+    <!-- ── Audit Trail Panel ── -->
+    <div class="panel" id="panel-audit">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)">📋 Audit Trail</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">บันทึกการ login, เพิ่มข้อมูล, ลบข้อมูล และเปลี่ยนสิทธิ์</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <select id="audit-filter" class="form-select" style="font-size:12px;padding:6px 10px" onchange="renderAuditTrail()">
+            <option value="all">ทั้งหมด</option>
+            <option value="login">Login</option>
+            <option value="create">เพิ่ม</option>
+            <option value="delete">ลบ</option>
+            <option value="admin">Admin</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="exportAuditCSV()">⬇ Export</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAuditLog()">ล้าง</button>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Audit Log</span>
+          <span class="table-count" id="audit-count">0 รายการ</span>
+        </div>
+        <div id="audit-list"></div>
+      </div>
+    </div>
+
+    <!-- ── Backup / Restore Panel ── -->
+    <div class="panel" id="panel-backup">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)">💾 Backup / Restore</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">สำรองข้อมูล localStorage, ผู้ใช้, audit และการตั้งค่า</div>
+        </div>
+        <div class="backup-actions">
+          <button class="btn btn-primary btn-sm" onclick="downloadBackup()">⬇ Download Backup</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('backup-file-input').click()">↥ Restore JSON</button>
+          <input id="backup-file-input" type="file" accept=".json,application/json" style="display:none" onchange="restoreBackupFile(this)">
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <span class="table-title">Backup Status</span>
+          <span class="table-count" id="backup-count">พร้อมใช้งาน</span>
+        </div>
+        <div id="backup-summary" style="padding:16px;color:var(--muted);font-size:12px"></div>
+      </div>
+    </div>
+
+    <!-- ── Company Backoffice Panel ── -->
+    <div class="panel" id="panel-company-backoffice">
+      <div class="backoffice-hero">
+        <div>
+          <div class="backoffice-kicker">COMPANY BACKOFFICE</div>
+          <h2>🏢 โครงสร้างหลังบ้านบริษัท</h2>
+          <p>วางผังแผนกทั้งหมดไว้พร้อมต่อยอด โดยเปิดใช้งานรายละเอียดของแผนกการตลาดก่อน</p>
+        </div>
+        <div class="backoffice-hero-actions">
+          <button class="btn btn-primary btn-sm" type="button" onclick="openMarketingDepartment()">📢 เปิดข้อมูลการตลาด</button>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="switchPanelByName('daily-report')">📝 รายงานพนักงาน</button>
+        </div>
+      </div>
+
+      <div class="backoffice-layout">
+        <section class="backoffice-org-card">
+          <div class="backoffice-section-head">
+            <div>
+              <div class="backoffice-section-title">ผังบริษัท</div>
+              <div class="backoffice-section-sub">โครงสร้างหลักตามหน้าที่ของแต่ละแผนก</div>
+            </div>
+            <span class="table-count" id="company-dept-count">7 แผนก</span>
+          </div>
+          <div id="company-org-tree" class="company-org-tree"></div>
+        </section>
+
+        <section class="marketing-workspace" id="marketing-workspace">
+          <div class="backoffice-section-head">
+            <div>
+              <div class="backoffice-section-title">📢 แผนกการตลาด</div>
+              <div class="backoffice-section-sub">โฟกัสวันนี้: ยิงโฆษณา คอนเทนต์ โซเชียล และวิเคราะห์ผล</div>
+            </div>
+            <span class="marketing-live-badge">ACTIVE</span>
+          </div>
+
+          <div class="marketing-stat-grid" id="marketing-stat-grid"></div>
+
+          <div class="marketing-card marketing-analysis-card">
+            <div class="marketing-card-head">
+              <div>
+                <div class="marketing-card-title">ข้อมูลแผนกการตลาด</div>
+                <div class="marketing-card-sub">ADS Manager และประวัติผลโฆษณาถูกย้ายไปอยู่ในเมนูข้อมูลแล้ว</div>
+              </div>
+              <button class="btn btn-primary btn-sm" type="button" onclick="openMarketingDepartment()">เปิดข้อมูลการตลาด</button>
+            </div>
+            <div class="marketing-backoffice-note">
+              <span>📢</span>
+              <div><b>วันนี้ใช้เมนูข้อมูล > การตลาด</b><small>หน้าใหม่รวมเครื่องมือ ADS Manager เฉพาะแผนกการตลาด</small></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+
+    <!-- ── Admin Panel ── -->
+    <div class="panel" id="panel-admin">
+      <!-- Admin Content -->
+      <div id="admin-content" style="display:none">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--text)">🛡️ สิทธิ์การเข้าถึงหลังบ้าน</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">จัดการบทบาทผู้ใช้ · สิทธิ์แต่ละโมดูล · การเพิ่มรหัสพนักงาน</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success btn-sm" onclick="saveAdminChanges()">💾 บันทึกการเปลี่ยนแปลง</button>
+            <button class="btn btn-ghost btn-sm" onclick="lockAdmin()">🔒 ออกจาก Admin</button>
+          </div>
+        </div>
+
+        <nav class="admin-tabs" aria-label="เมนูตั้งค่าผู้ดูแลระบบ">
+          <button class="admin-tab active" type="button" data-admin-tab="access" onclick="switchAdminTab('access',this)">👥 ผู้ใช้และสิทธิ์</button>
+          <button class="admin-tab" type="button" data-admin-tab="reports" onclick="switchAdminTab('reports',this)">📝 แบบฟอร์มรายงาน</button>
+          <button class="admin-tab" type="button" data-admin-tab="system" onclick="switchAdminTab('system',this)">⚙️ ระบบและการซิงก์</button>
+          <button class="admin-tab" type="button" data-admin-tab="security" onclick="switchAdminTab('security',this)">🔐 ความปลอดภัย</button>
+        </nav>
+
+        <section class="admin-system-section admin-tab-pane" data-admin-pane="system">
+          <div class="admin-system-section-head">
+            <div>
+              <div class="admin-system-section-title">⚙️ การเชื่อมต่อและเครื่องมือระบบ</div>
+              <div class="admin-system-section-sub">เฉพาะผู้ดูแลระบบ · จัดการ API, Token, Cache และรายการรอซิงก์</div>
+            </div>
+          </div>
+          <div class="admin-system-grid">
+            <div class="system-menu-card admin-system-card">
+              <div class="system-menu-title"><span>🔗</span> การเชื่อมต่อ</div>
+              <div class="status-row">
+                <span class="status-dot dot-idle" id="status-dot"></span>
+                <span class="status-text" id="status-text">ยังไม่ได้เชื่อมต่อ</span>
+              </div>
+              <label class="admin-system-label" for="api-url">Web App URL</label>
+              <input class="config-input" id="api-url" placeholder="Web App URL" type="text" value="">
+              <label class="admin-system-label" for="api-token">API Token</label>
+              <div class="secure-input-row">
+                <input class="config-input" id="api-token" placeholder="API Token" type="password" value="" autocomplete="off">
+                <button class="secure-input-toggle" type="button" onclick="toggleSecretVisibility('api-token',this)" title="แสดงหรือซ่อน Token">👁</button>
+              </div>
+              <div class="admin-system-inline-actions">
+                <button class="system-menu-btn" type="button" onclick="testApiConnection()">⚡ ทดสอบ</button>
+                <button class="connect-btn" id="api-connect-btn" type="button" onclick="window.erpConnectApi()">🔗 ทดสอบและบันทึก</button>
+              </div>
+              <div class="connection-test-result" id="connection-test-result">ยังไม่ได้ทดสอบการเชื่อมต่อ</div>
+            </div>
+
+            <div class="system-menu-card admin-system-card">
+              <div class="system-menu-title"><span>⚙️</span> เครื่องมือระบบ</div>
+              <label class="admin-system-label" for="access-token-input">Token การเข้าถึง</label>
+              <div class="secure-input-row">
+                <input class="config-input" type="password" id="access-token-input" placeholder="วาง Token ใหม่" autocomplete="off">
+                <button class="secure-input-toggle" type="button" onclick="toggleSecretVisibility('access-token-input',this)" title="แสดงหรือซ่อน Token">👁</button>
+              </div>
+              <div class="system-menu-grid">
+                <button class="system-menu-btn ok" onclick="saveAccessToken()">💾 ทดสอบและบันทึก</button>
+                <button class="system-menu-btn" onclick="replaceStoredToken()">↻ เปลี่ยน Token</button>
+                <button class="system-menu-btn" onclick="clearCache()">🗑️ ล้างแคช</button>
+                <button class="system-menu-btn blue" onclick="refreshCurrent()">↺ รีเฟรช</button>
+                <button class="system-menu-btn amber" onclick="exportCSV('sales')">⬇ ส่งออก CSV</button>
+              </div>
+              <div class="system-menu-status">
+                <div class="system-menu-status-row"><span>สถานะ API</span><span id="sys-api-status">● ตรวจสอบ...</span></div>
+                <div class="system-menu-status-row"><span>Google Sheets</span><span id="sys-sheets-status">● ตรวจสอบ...</span></div>
+                <div class="system-menu-status-row"><span>ซิงก์ล่าสุด</span><span id="sys-last-sync">—</span></div>
+              </div>
+            </div>
+
+            <div class="system-menu-card admin-system-card" id="sync-queue-card">
+              <div class="system-menu-title"><span>↻</span> คิวซิงก์ข้อมูล</div>
+              <div class="sync-summary">
+                <span><b id="sync-pending-count">0</b> รอซิงก์</span>
+                <span><b id="sync-failed-count">0</b> ไม่สำเร็จ</span>
+              </div>
+              <div id="sync-queue-list" class="sync-queue-list">
+                <div class="sync-empty">ไม่มีข้อมูลรอซิงก์</div>
+              </div>
+              <button class="system-menu-btn blue sync-retry-all" type="button" onclick="retrySyncQueue()">↻ ลองซิงก์ใหม่ทั้งหมด</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-operations-section admin-tab-pane" data-admin-pane="system">
+          <div class="admin-operations-head">
+            <div>
+              <div class="admin-system-section-title">📡 สถานะสุขภาพระบบ</div>
+              <div class="admin-system-section-sub">สถานะล่าสุดของ API, Google Sheets, คิวซิงก์, Session และ Backup</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="refreshSystemHealth(true)">↺ ตรวจสอบใหม่</button>
+          </div>
+          <div class="system-health-grid" id="system-health-grid"></div>
+          <div class="admin-operations-grid">
+            <div class="admin-ops-card">
+              <div class="admin-ops-head">
+                <div><div class="admin-ops-title">↻ ประวัติการซิงก์</div><div class="admin-ops-sub">สำเร็จ ล้มเหลว และรายละเอียดข้อผิดพลาด</div></div>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="clearSyncHistory()">ล้างประวัติ</button>
+              </div>
+              <div class="admin-history-list" id="sync-history-list"></div>
+            </div>
+            <div class="admin-ops-card">
+              <div class="admin-ops-head">
+                <div><div class="admin-ops-title">🔔 การแจ้งเตือนผู้ดูแล</div><div class="admin-ops-sub">API ล่ม ซิงก์ล้มเหลว และข้อมูลซ้ำ</div></div>
+                <button class="btn btn-ghost btn-sm" type="button" onclick="clearAdminAlerts()">ล้างแจ้งเตือน</button>
+              </div>
+              <div class="admin-history-list" id="admin-alert-list"></div>
+            </div>
+          </div>
+          <div class="admin-control-grid">
+            <div class="admin-control-card">
+              <div><div class="admin-ops-title">⏱ หมดเวลาใช้งานอัตโนมัติ</div><div class="admin-ops-sub" id="session-status-text">ออกจากระบบเมื่อไม่มีการใช้งาน</div></div>
+              <select id="session-timeout-select" class="form-select" onchange="saveSessionTimeout(this.value)">
+                <option value="15">15 นาที</option><option value="30" selected>30 นาที</option><option value="60">60 นาที</option><option value="120">120 นาที</option>
+              </select>
+            </div>
+            <div class="admin-control-card">
+              <div><div class="admin-ops-title">💾 สำรองข้อมูลอัตโนมัติรายวัน</div><div class="admin-ops-sub" id="auto-backup-status">เก็บประวัติ 7 วันในเครื่อง</div></div>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="createAutomaticBackup(true)">สำรองตอนนี้</button>
+            </div>
+            <div class="admin-control-card maintenance-control">
+              <div><div class="admin-ops-title">🛠 โหมดปรับปรุงระบบ</div><div class="admin-ops-sub">ปิดการเพิ่ม แก้ไข และลบสำหรับพนักงานชั่วคราว</div></div>
+              <label class="switch-control"><input id="maintenance-toggle" type="checkbox" onchange="setMaintenanceMode(this.checked)"><span></span></label>
+            </div>
+          </div>
+          <div class="backup-history-wrap">
+            <div class="admin-ops-head"><div><div class="admin-ops-title">ประวัติการสำรองข้อมูลอัตโนมัติ</div><div class="admin-ops-sub">เลือกคืนค่าจากข้อมูลสำรองในเครื่อง</div></div></div>
+            <div class="admin-history-list" id="auto-backup-history"></div>
+          </div>
+        </section>
+
+        <div class="admin-access-layout admin-tab-pane active" data-admin-pane="access">
+
+          <!-- Permission Matrix -->
+          <div class="premium-perm-card">
+            <div class="premium-perm-head">
+              <div>
+                <div class="premium-perm-title">🛡️ ตารางสิทธิ์แยกตามโมดูล</div>
+                <div class="premium-perm-sub">จัดการสิทธิ์แบบองค์รวม จบในหน้าเดียวอย่างแม่นยำ</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="saveAdminChanges()">💾 บันทึกการเปลี่ยนแปลง</button>
+            </div>
+            <div class="premium-perm-scroll">
+              <table class="premium-perm-table">
+                <thead>
+                  <tr>
+                    <th style="width:22%">โมดูลระบบ</th>
+                    <th class="premium-role-head premium-role-admin">
+                      <span class="premium-role-name">👑 ADMIN</span>
+                      <div class="premium-action-grid premium-action-labels"><span>ดู</span><span>กรอก</span><span>แก้</span><span>ลบ</span></div>
+                    </th>
+                    <th class="premium-role-head premium-role-editor">
+                      <span class="premium-role-name">📝 EDITOR</span>
+                      <div class="premium-action-grid premium-action-labels"><span>ดู</span><span>กรอก</span><span>แก้</span><span>ลบ</span></div>
+                    </th>
+                    <th class="premium-role-head premium-role-viewer">
+                      <span class="premium-role-name">👁️ VIEWER</span>
+                      <div class="premium-action-grid premium-action-labels"><span>ดู</span><span>กรอก</span><span>แก้</span><span>ลบ</span></div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="permission-matrix-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- User List -->
+          <div class="table-card">
+            <div class="table-header">
+              <span class="table-title">ผู้ใช้ในระบบ</span>
+              <span class="table-count" id="admin-user-count">0 คน</span>
+              <div class="table-actions">
+                <button class="btn btn-primary btn-sm" onclick="openAdminAddUser()">+ เพิ่มผู้ใช้</button>
+              </div>
+            </div>
+            <div id="admin-user-list" style="padding:8px 0"></div>
+          </div>
+
+        </div>
+
+        <!-- Daily Report Field Builder -->
+        <div class="chart-card admin-tab-pane" data-admin-pane="reports">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">📝 ตั้งค่าช่องรายงานประจำวัน</div>
+              <div class="chart-card-sub">Admin เท่านั้นที่เพิ่มช่องได้ · แต่ละตำแหน่งใช้ฟอร์มไม่เหมือนกัน</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="focusDailyFieldBuilder()">+ เพิ่มช่อง</button>
+          </div>
+          <div class="daily-field-builder-shell">
+            <div class="daily-field-builder-grid">
+              <div class="daily-field-builder-form">
+                <div class="form-group">
+                  <label class="form-label">ตำแหน่ง</label>
+                  <select id="daily-field-position" class="form-select" onchange="renderDailyFieldAdmin()"></select>
+                  <div class="settings-row-sub" style="margin-top:5px">ดึงจากตำแหน่งของผู้ใช้ในระบบโดยอัตโนมัติ</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ชนิดช่อง</label>
+                  <select id="daily-field-type" class="form-select">
+                    <option value="textarea">ข้อความยาว (textarea)</option>
+                    <option value="text">ข้อความสั้น (text)</option>
+                    <option value="number">ตัวเลข/จำนวน (number)</option>
+                    <option value="date">วันที่ (date)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ชื่อช่องใหม่</label>
+                  <input id="daily-field-label" class="form-input" placeholder="เช่น ยอดปิดการขายวันนี้">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Placeholder</label>
+                  <input id="daily-field-placeholder" class="form-input" placeholder="ข้อความตัวอย่างในช่องกรอก">
+                </div>
+                <label class="daily-field-required-control">
+                  <input id="daily-field-required" type="checkbox">
+                  <span>บังคับกรอกข้อมูล (Required)</span>
+                </label>
+                <div class="daily-field-examples">
+                  <div class="daily-field-examples-head">
+                    <div>
+                      <div class="daily-field-examples-title">ตัวอย่างเพิ่มช่อง</div>
+                      <div class="settings-row-sub">เลือกแบบสำเร็จรูปให้ตรงกับตำแหน่ง</div>
+                    </div>
+                    <span id="daily-field-example-position" class="daily-field-example-position"></span>
+                  </div>
+                  <div id="daily-field-example-list" class="daily-field-example-list"></div>
+                </div>
+                <button class="btn btn-primary" onclick="addDailyFieldFromAdmin()" style="width:100%;justify-content:center">+ เพิ่มช่องรายงาน</button>
+              </div>
+              <div class="daily-field-builder-list">
+                <div class="daily-field-builder-list-head">
+                  <div>
+                    <div class="chart-card-title" id="daily-field-admin-title">รายการช่องปัจจุบัน</div>
+                    <div class="chart-card-sub">แก้ไข เรียงลำดับ ซ่อน หรือกำหนด Required ได้ในรายการ</div>
+                  </div>
+                  <div class="daily-field-list-head-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="undoDailyFieldChange()" id="daily-field-undo-btn" disabled>↶ Undo</button>
+                    <span class="table-count" id="daily-field-admin-count">0 ช่อง</span>
+                  </div>
+                </div>
+                <div class="daily-field-copy-bar">
+                  <select id="daily-field-copy-target" class="form-select"></select>
+                  <button class="btn btn-ghost btn-sm" onclick="copyDailyFieldsToPosition()">คัดลอกฟอร์ม</button>
+                  <button class="btn btn-ghost btn-sm" onclick="resetDailyFieldsForPosition()">คืนค่าเริ่มต้น</button>
+                </div>
+                <div id="daily-field-admin-list" class="daily-field-builder-scroll"></div>
+                <div id="daily-field-history" class="daily-field-history"></div>
+              </div>
+            </div>
+            <div class="daily-field-preview">
+              <div class="daily-field-preview-head">
+                <div>
+                  <div class="chart-card-title">ตัวอย่างฟอร์มสด</div>
+                  <div class="chart-card-sub">Preview อัปเดตทันทีเมื่อเพิ่ม ลบ หรือแก้ไขช่อง</div>
+                </div>
+                <span class="daily-field-preview-badge"><span></span> LIVE PREVIEW</span>
+              </div>
+              <div class="daily-field-preview-position">
+                <label class="form-label">Preview ตามตำแหน่ง</label>
+                <select id="daily-field-preview-position" class="form-select" onchange="changeDailyFieldPreviewPosition()"></select>
+              </div>
+              <div class="daily-field-preview-window">
+                <div class="daily-field-preview-window-head">
+                  <div><b>+ เพิ่มข้อมูล — <span id="daily-field-preview-title">รายงานประจำวัน</span></b> <small>Preview</small></div>
+                  <span id="daily-field-preview-count">0 ช่อง</span>
+                </div>
+                <div id="daily-field-preview-form" class="daily-field-preview-form"></div>
+              </div>
+              <div class="chart-card-sub" id="daily-field-preview-sub"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Admin Password -->
+        <div class="chart-card admin-tab-pane" data-admin-pane="security">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">🔑 เปลี่ยนรหัสผ่าน Admin</div>
+              <div class="chart-card-sub">รหัสผ่านเก็บใน localStorage ของเครื่องนี้เท่านั้น</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding-top:4px">
+            <div class="form-group">
+              <label class="form-label">รหัสผ่านปัจจุบัน</label>
+              <input type="password" id="admin-old-pass" class="form-input" placeholder="••••••••" style="width:180px">
+            </div>
+            <div class="form-group">
+              <label class="form-label">รหัสผ่านใหม่</label>
+              <input type="password" id="admin-new-pass" class="form-input" placeholder="••••••••" style="width:180px">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+              <input type="password" id="admin-confirm-pass" class="form-input" placeholder="••••••••" style="width:180px">
+            </div>
+            <button class="btn btn-primary" style="margin-bottom:1px" onclick="changeAdminPassword()">🔑 เปลี่ยนรหัสผ่าน</button>
+          </div>
+        </div>
+
+      </div><!-- /admin-content -->
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── Add/Edit Modal ── -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modal-title">เพิ่มข้อมูล</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" id="modal-form"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" id="modal-save" onclick="saveModal()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Confirm Delete Modal ── -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal" style="width:380px">
+    <div class="modal-body" style="padding:30px 24px">
+      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-msg">ยืนยันการลบข้อมูล?</div>
+      <div class="confirm-sub" id="confirm-id"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeConfirm()">ยกเลิก</button>
+      <button class="btn btn-danger" id="confirm-ok">ลบเลย</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script src="app.js?v=20260618-lazy-load-2" defer></script>
+<script src="calendar.js?v=20260613-admin-system" defer></script>
+
+<!-- ── Import CSV Modal ── -->
+<div class="overlay" id="import-overlay">
+  <div class="modal" style="width:600px">
+    <div class="modal-head">
+      <span class="modal-title" id="import-modal-title">📥 Import CSV — sales</span>
+      <button class="modal-close" onclick="closeImport()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Step 1: Drop zone -->
+      <div id="import-step1">
+        <div class="import-drop" id="import-drop"
+          onclick="document.getElementById('import-file').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleImportDrop(event)">
+          <div class="import-drop-icon">📂</div>
+          <div class="import-drop-title">ลาก CSV มาวาง หรือคลิกเพื่อเลือกไฟล์</div>
+          <div class="import-drop-sub">รองรับ .csv · UTF-8 · แถวแรกต้องเป็น Header</div>
+        </div>
+        <input type="file" id="import-file" accept=".csv" style="display:none" onchange="handleImportFile(this)">
+
+        <div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">ตัวอย่าง Header ที่รองรับ</div>
+          <div id="import-expected-headers" style="font-size:11px;font-family:var(--mono);color:var(--accent)"></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Preview -->
+      <div id="import-step2" style="display:none">
+        <div class="import-stats" id="import-stats"></div>
+        <div id="import-map-msg" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
+        <div class="import-preview" id="import-preview-table"></div>
+        <div class="import-progress" id="import-progress-wrap" style="display:none">
+          <div class="import-progress-fill" id="import-progress-fill" style="width:0%"></div>
+        </div>
+        <div id="import-result-msg" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeImport()">ยกเลิก</button>
+      <button class="btn btn-ghost" id="import-back-btn" onclick="importGoBack()" style="display:none">← กลับ</button>
+      <button class="btn btn-primary" id="import-do-btn" onclick="doImport()" style="display:none">📤 Import <span id="import-do-count"></span> แถว</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Smart Search Overlay ── -->
+<div class="smart-search-overlay" id="smart-search-overlay" onclick="if(event.target===this)closeSmartSearch()">
+  <div class="smart-search-box">
+    <div class="smart-search-input-wrap">
+      <span class="smart-search-icon">🔍</span>
+      <input class="smart-search-input" id="smart-search-input" placeholder="ค้นหาเมนู, ลูกค้า, สัญญา, โปรเจกต์..." oninput="smartSearch(this.value)" autocomplete="off">
+      <button class="sk-close" onclick="closeSmartSearch()">✕</button>
+    </div>
+    <div class="smart-search-results" id="smart-search-results">
+      <div class="smart-search-empty">พิมพ์เพื่อค้นหาข้ามเมนูและข้อมูลในเครื่อง</div>
+    </div>
+    <div class="smart-search-tips">
+      <span class="smart-tip" onclick="smartSearch('สัญญา')">สัญญา</span>
+      <span class="smart-tip" onclick="smartSearch('โปรเจกต์')">โปรเจกต์</span>
+      <span class="smart-tip" onclick="smartSearch('ลูกค้า')">ลูกค้า</span>
+      <span class="smart-tip" onclick="smartSearch('Admin')">Admin</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Keyboard Shortcut Panel ── -->
+<div class="shortcut-hint" id="shortcut-hint">
+  <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">⌨️ Keyboard Shortcuts</div>
+  <div class="sk-row"><span>Smart Search</span><span class="sk-key">Ctrl+K</span></div>
+  <div class="sk-row"><span>เพิ่มข้อมูล</span><span class="sk-key">Ctrl+N</span></div>
+  <div class="sk-row"><span>Refresh</span><span class="sk-key">Ctrl+R</span></div>
+  <div class="sk-row"><span>Shortcuts</span><span class="sk-key">?</span></div>
+  <div class="sk-row"><span>ปิดหน้าต่าง</span><span class="sk-key">Esc</span></div>
+</div>
+
+<!-- ── Keyboard Shortcuts Overlay ── -->
+<div class="sk-overlay" id="sk-overlay" onclick="if(event.target===this)closeShortcuts()">
+  <div class="sk-box">
+    <div class="sk-head">
+      <span class="sk-title">⌨️ Keyboard Shortcuts</span>
+      <button class="sk-close" onclick="closeShortcuts()">✕</button>
+    </div>
+    <div class="sk-section">Navigation</div>
+    <div class="sk-row"><span>เปิด Smart Search</span><span class="sk-key">Ctrl+K</span></div>
+    <div class="sk-row"><span>เพิ่มข้อมูลในหน้าปัจจุบัน</span><span class="sk-key">Ctrl+N</span></div>
+    <div class="sk-row"><span>รีเฟรชหน้าปัจจุบัน</span><span class="sk-key">Ctrl+R</span></div>
+    <div class="sk-section">Panels</div>
+    <div class="sk-row"><span>เปิดหน้านี้</span><span class="sk-key">?</span></div>
+    <div class="sk-row"><span>ปิด Modal / Overlay</span><span class="sk-key">Esc</span></div>
+  </div>
+</div>
+
+<!-- ── Undo Bar ── -->
+<div class="undo-bar" id="undo-bar">
+  <span>↩</span>
+  <span id="undo-action-text">การกระทำล่าสุด</span>
+  <button class="undo-btn" onclick="doUndo()">Undo</button>
+  <button class="undo-dismiss" onclick="dismissUndo()">✕</button>
+</div>
+
+</div><!-- /erp-app -->
+
+</body>
+</html>
+
+

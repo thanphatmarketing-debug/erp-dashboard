@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ปฏิทินนัดหมาย</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#222536;--border:#2e3248;--text:#e8eaf0;--text2:#8b90a7;--text3:#555a72;--green:#1D9E75;--green-dk:#0F6E56;--green-bg:#0d2e22;--amber:#BA7517;--amber-bg:#2d1f05;--red:#D85A30;--red-bg:#2d140a;--blue:#378ADD;--blue-bg:#0a1e35;--purple:#9E7FDD;--purple-bg:#1a1535;--radius:10px;--radius-sm:6px;}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.page-title{font-size:19px;font-weight:600}.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}.btn-p{background:var(--green);border-color:var(--green);color:#fff}.btn-p:hover{background:var(--green-dk)}
+.btn-danger{border-color:var(--red);color:var(--red)}.btn-danger:hover{background:var(--red-bg)}.btn-sm{padding:5px 10px;font-size:11px}
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}.b-amber{background:var(--amber-bg);color:var(--amber)}.b-red{background:var(--red-bg);color:var(--red)}.b-blue{background:var(--blue-bg);color:var(--blue)}.b-purple{background:var(--purple-bg);color:var(--purple)}.b-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.layout{display:grid;grid-template-columns:1fr 300px;gap:14px}
+/* Calendar */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-size:15px;font-weight:600}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{text-align:center;font-size:11px;font-weight:600;color:var(--text2);padding:6px 0}
+.cal-day{min-height:72px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:5px;cursor:pointer;transition:background .15s;position:relative}
+.cal-day:hover{background:var(--bg3)}
+.cal-day.today{border-color:var(--green)}
+.cal-day.other-month{opacity:.35}
+.cal-day.selected{background:var(--bg3);border-color:var(--blue)}
+.day-num{font-size:11px;font-weight:600;margin-bottom:3px;color:var(--text2)}
+.cal-day.today .day-num{color:var(--green)}
+.cal-event{font-size:9px;padding:1px 4px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.ev-blue{background:var(--blue-bg);color:var(--blue);border:0.5px solid var(--blue)}
+.ev-green{background:var(--green-bg);color:var(--green);border:0.5px solid var(--green)}
+.ev-amber{background:var(--amber-bg);color:var(--amber);border:0.5px solid var(--amber)}
+.ev-red{background:var(--red-bg);color:var(--red);border:0.5px solid var(--red)}
+.ev-purple{background:var(--purple-bg);color:var(--purple);border:0.5px solid var(--purple)}
+/* Sidebar */
+.sidebar-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.sidebar-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+.apt-item{padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:6px;cursor:pointer;transition:background .15s}
+.apt-item:hover{background:var(--bg3)}
+.apt-time{font-size:11px;color:var(--text2);margin-bottom:2px}
+.apt-name{font-size:12px;font-weight:600}
+.apt-meta{font-size:10px;color:var(--text2);margin-top:2px}
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:460px;margin:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.form-label{font-size:12px;color:var(--text2)}
+.inp{padding:8px 11px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);width:100%}
+.inp:focus{outline:none;border-color:var(--green)}
+textarea.inp{resize:vertical;min-height:60px;font-family:inherit}
+select.inp{cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:700px){.layout{grid-template-columns:1fr}}
+/* ERP fit override */
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-size:12px}
+.wrap{max-width:none;width:100%;height:100vh;padding:12px 14px;overflow:hidden}
+.topbar{margin-bottom:10px}.page-title{font-size:17px}.page-sub{font-size:11px}
+.layout{grid-template-columns:minmax(0,1fr) 250px;gap:10px}
+.cal-header{margin-bottom:8px}.cal-month{font-size:14px}
+.cal-grid{gap:2px}.cal-dow{font-size:10px;padding:4px 0}
+.cal-day{min-height:58px;padding:4px}.day-num{font-size:10px;margin-bottom:2px}.cal-event{font-size:8px;padding:1px 3px}
+.sidebar-card{padding:10px;margin-bottom:8px}.sidebar-title{font-size:11px;margin-bottom:7px}
+.apt-item{padding:7px 8px;margin-bottom:5px}.apt-time{font-size:10px}.apt-name{font-size:11px}.apt-meta{font-size:9px}
+.btn{padding:6px 10px;font-size:11px}.modal{max-height:92vh;overflow:auto;padding:16px}.inp{min-height:34px;font-size:12px}
+@media(max-width:780px){.wrap{overflow:auto}.layout{grid-template-columns:1fr}.cal-day{min-height:52px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1 class="page-title">📅 ปฏิทินนัดหมาย</h1>
+      <p class="page-sub">นัดหมายทีมขาย งานก่อสร้าง และกิจกรรมทั้งหมด</p>
+    </div>
+    <button class="btn btn-p" onclick="openAddEvent()">+ เพิ่มนัดหมาย</button>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="cal-header">
+        <button class="btn btn-sm" onclick="changeMonth(-1)">◀</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button class="btn btn-sm" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-dow">อา</div><div class="cal-dow">จ</div><div class="cal-dow">อ</div>
+        <div class="cal-dow">พ</div><div class="cal-dow">พฤ</div><div class="cal-dow">ศ</div><div class="cal-dow">ส</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <div>
+      <div class="sidebar-card">
+        <div class="sidebar-title" id="sidebar-date-label">นัดหมายวันนี้</div>
+        <div id="sidebar-events"><p style="font-size:12px;color:var(--text2)">ไม่มีนัดหมาย</p></div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title">นัดหมายที่จะมาถึง (7 วัน)</div>
+        <div id="upcoming-events"></div>
+      </div>
+      <div class="sidebar-card">
+        <div class="sidebar-title">ประเภทนัดหมาย</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:10px;height:10px;border-radius:2px;background:var(--blue)"></div>นัดคุยลูกค้า (Sales)</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:10px;height:10px;border-radius:2px;background:var(--green)"></div>ตรวจงาน/ส่งมอบ</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:10px;height:10px;border-radius:2px;background:var(--amber)"></div>ประชุมภายใน</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:10px;height:10px;border-radius:2px;background:var(--red)"></div>ครบกำหนดงาน</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px"><div style="width:10px;height:10px;border-radius:2px;background:var(--purple)"></div>อื่นๆ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay-event">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="event-modal-title">+ เพิ่มนัดหมาย</span>
+      <button class="btn btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-group"><label class="form-label">ชื่อนัดหมาย *</label><input class="inp" id="ef-title" placeholder="เช่น นัดคุยลูกค้า คุณสมชาย"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">วันที่ *</label><input class="inp" id="ef-date" type="date"></div>
+      <div class="form-group"><label class="form-label">เวลา</label><input class="inp" id="ef-time" type="time" value="10:00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">ประเภท</label>
+      <select class="inp" id="ef-type">
+        <option value="sales">นัดคุยลูกค้า (Sales)</option>
+        <option value="construction">ตรวจงาน/ส่งมอบ</option>
+        <option value="meeting">ประชุมภายใน</option>
+        <option value="deadline">ครบกำหนดงาน</option>
+        <option value="other">อื่นๆ</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">ลูกค้า / ผู้เกี่ยวข้อง</label><input class="inp" id="ef-person" placeholder="เช่น คุณสมชาย วงศ์ดี"></div>
+    <div class="form-group"><label class="form-label">สถานที่</label><input class="inp" id="ef-location" placeholder="เช่น ออฟฟิศ / โครงการ / ออนไลน์"></div>
+    <div class="form-group"><label class="form-label">หมายเหตุ</label><textarea class="inp" id="ef-note" placeholder="รายละเอียดเพิ่มเติม..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del-event" style="display:none" onclick="deleteEvent()">🗑 ลบ</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeModal()">ยกเลิก</button>
+        <button class="btn btn-p" onclick="saveEvent()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const TYPE_COLOR={sales:'ev-blue',construction:'ev-green',meeting:'ev-amber',deadline:'ev-red',other:'ev-purple'};
+const TYPE_LABEL={sales:'นัดลูกค้า',construction:'ตรวจงาน',meeting:'ประชุม',deadline:'ครบกำหนด',other:'อื่นๆ'};
+const TYPE_BADGE={sales:'b-blue',construction:'b-green',meeting:'b-amber',deadline:'b-red',other:'b-purple'};
+let events=[],nextEId=1,editingEId=null,selectedDate=null;
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+const today=new Date();today.setHours(0,0,0,0);
+const thM=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+function loadDemo(){
+  const y=calYear,m=calMonth;
+  const fmtD=(d,mo,yr)=>`${yr}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  events=[
+    {id:1,title:'นัดคุยลูกค้า คุณสมชาย',date:fmtD(today.getDate(),m,y),time:'14:00',type:'sales',person:'คุณสมชาย วงศ์ดี',location:'ออฟฟิศ',note:'พูดเรื่องแบบบ้าน A4'},
+    {id:2,title:'ตรวจงาน พิชญา วิลล่า',date:fmtD(today.getDate()+2,m,y),time:'09:00',type:'construction',person:'ทีมก่อสร้าง',location:'ลาดพร้าว ซอย 12',note:'เช็คโครงสร้างชั้น 2'},
+    {id:3,title:'ประชุมทีมการตลาด',date:fmtD(today.getDate()+1,m,y),time:'10:00',type:'meeting',person:'ทีมการตลาด',location:'ออฟฟิศ',note:'สรุปผล ADS เดือนนี้'},
+    {id:4,title:'ส่งมอบบ้าน คุณมาลี',date:fmtD(today.getDate()+5,m,y),time:'13:00',type:'construction',person:'คุณมาลี รุ่งเรือง',location:'สาทร',note:'เตรียมเอกสารส่งมอบ'},
+    {id:5,title:'นัดเซ็นสัญญา คุณวิชัย',date:fmtD(today.getDate()+3,m,y),time:'11:00',type:'sales',person:'คุณวิชัย ใจกว้าง',location:'ออฟฟิศ',note:'เตรียมสัญญา 2 ชุด'},
+    {id:6,title:'ครบกำหนดงวดชำระ',date:fmtD(today.getDate()+7,m,y),time:'',type:'deadline',person:'คุณนภา ศรีสุข',location:'',note:'งวดที่ 3 ฿480,000'},
+  ];
+  nextEId=7;
+  renderCal(); renderSidebar(today); renderUpcoming();
+}
+
+function renderCal(){
+  document.getElementById('cal-month-label').textContent=thM[calMonth]+' '+(calYear+543);
+  const grid=document.getElementById('cal-grid');
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const prevDays=new Date(calYear,calMonth,0).getDate();
+  let html='';
+  for(let i=0;i<first;i++){
+    const day=prevDays-first+i+1;
+    html+=`<div class="cal-day other-month"><div class="day-num">${day}</div></div>`;
+  }
+  for(let d=1;d<=days;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dd=new Date(calYear,calMonth,d); dd.setHours(0,0,0,0);
+    const isToday=dd.getTime()===today.getTime();
+    const isSel=selectedDate===dateStr;
+    const dayEvents=events.filter(e=>e.date===dateStr);
+    const evHtml=dayEvents.slice(0,3).map(e=>`<div class="cal-event ${TYPE_COLOR[e.type]}" onclick="event.stopPropagation();openEditEvent(${e.id})" title="${e.title}">${e.time?e.time+' ':''} ${e.title}</div>`).join('');
+    const more=dayEvents.length>3?`<div style="font-size:9px;color:var(--text2)">+${dayEvents.length-3} อีก</div>`:'';
+    html+=`<div class="cal-day ${isToday?'today':''} ${isSel?'selected':''}" onclick="selectDay('${dateStr}')">
+      <div class="day-num">${d}</div>${evHtml}${more}
+    </div>`;
+  }
+  const remaining=42-first-days;
+  for(let i=1;i<=remaining;i++) html+=`<div class="cal-day other-month"><div class="day-num">${i}</div></div>`;
+  grid.innerHTML=html;
+}
+
+function selectDay(dateStr){
+  selectedDate=dateStr;
+  renderCal();
+  const d=new Date(dateStr);
+  renderSidebar(d);
+}
+
+function renderSidebar(d){
+  const y=d.getFullYear(),m=d.getMonth(),day=d.getDate();
+  const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const thD=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  document.getElementById('sidebar-date-label').textContent=thD[d.getDay()]+' '+day+' '+thM[m];
+  const evs=events.filter(e=>e.date===dateStr).sort((a,b)=>a.time.localeCompare(b.time));
+  const el=document.getElementById('sidebar-events');
+  if(!evs.length){el.innerHTML='<p style="font-size:12px;color:var(--text2)">ไม่มีนัดหมาย</p>';return;}
+  el.innerHTML=evs.map(e=>`<div class="apt-item" onclick="openEditEvent(${e.id})">
+    <div class="apt-time">${e.time||'ทั้งวัน'} <span class="badge ${TYPE_BADGE[e.type]}">${TYPE_LABEL[e.type]}</span></div>
+    <div class="apt-name">${e.title}</div>
+    ${e.person?`<div class="apt-meta">👤 ${e.person}</div>`:''}
+    ${e.location?`<div class="apt-meta">📍 ${e.location}</div>`:''}
+  </div>`).join('');
+}
+
+function renderUpcoming(){
+  const el=document.getElementById('upcoming-events');
+  const future=[];
+  for(let i=0;i<=7;i++){
+    const d=new Date(today); d.setDate(d.getDate()+i);
+    const dateStr=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    events.filter(e=>e.date===dateStr).forEach(e=>future.push({...e,_diff:i}));
+  }
+  future.sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  if(!future.length){el.innerHTML='<p style="font-size:12px;color:var(--text2)">ไม่มีนัดหมาย</p>';return;}
+  el.innerHTML=future.map(e=>`<div class="apt-item" onclick="openEditEvent(${e.id})">
+    <div class="apt-time">${e._diff===0?'วันนี้':e._diff===1?'พรุ่งนี้':'อีก '+e._diff+' วัน'}${e.time?' • '+e.time:''}</div>
+    <div class="apt-name">${e.title}</div>
+    ${e.person?`<div class="apt-meta">👤 ${e.person}</div>`:''}
+  </div>`).join('');
+}
+
+function changeMonth(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCal();
+}
+
+function openAddEvent(){
+  editingEId=null;
+  document.getElementById('event-modal-title').textContent='+ เพิ่มนัดหมาย';
+  document.getElementById('btn-del-event').style.display='none';
+  document.getElementById('ef-title').value='';
+  document.getElementById('ef-date').value=selectedDate||new Date().toISOString().slice(0,10);
+  document.getElementById('ef-time').value='10:00';
+  document.getElementById('ef-type').value='sales';
+  ['ef-person','ef-location','ef-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('overlay-event').classList.add('open');
+}
+
+function openEditEvent(id){
+  editingEId=id;
+  const e=events.find(x=>x.id===id);if(!e)return;
+  document.getElementById('event-modal-title').textContent='✏️ แก้ไขนัดหมาย';
+  document.getElementById('btn-del-event').style.display='inline-flex';
+  document.getElementById('ef-title').value=e.title;
+  document.getElementById('ef-date').value=e.date;
+  document.getElementById('ef-time').value=e.time||'';
+  document.getElementById('ef-type').value=e.type;
+  document.getElementById('ef-person').value=e.person||'';
+  document.getElementById('ef-location').value=e.location||'';
+  document.getElementById('ef-note').value=e.note||'';
+  document.getElementById('overlay-event').classList.add('open');
+}
+
+function saveEvent(){
+  const title=document.getElementById('ef-title').value.trim();
+  const date=document.getElementById('ef-date').value;
+  if(!title||!date){showToast('กรุณากรอกชื่อและวันที่');return;}
+  const data={title,date,time:document.getElementById('ef-time').value,type:document.getElementById('ef-type').value,person:document.getElementById('ef-person').value.trim(),location:document.getElementById('ef-location').value.trim(),note:document.getElementById('ef-note').value.trim()};
+  if(editingEId){Object.assign(events.find(x=>x.id===editingEId),data);}
+  else{events.push({id:nextEId++,...data});}
+  closeModal();
+  // navigate to event month
+  const d=new Date(data.date); calYear=d.getFullYear(); calMonth=d.getMonth();
+  renderCal(); renderSidebar(d); renderUpcoming();
+  showToast(editingEId?'✓ แก้ไขแล้ว':'✓ เพิ่มนัดหมายแล้ว');
+}
+
+function deleteEvent(){
+  if(!editingEId||!confirm('ลบนัดหมายนี้?'))return;
+  events=events.filter(e=>e.id!==editingEId);
+  closeModal(); renderCal(); renderUpcoming(); showToast('ลบแล้ว');
+}
+
+function closeModal(){document.getElementById('overlay-event').classList.remove('open');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+loadDemo();
+renderSidebar(today);
+</script>
+</body>
+</html>

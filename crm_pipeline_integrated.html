@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM — Sales Pipeline</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--bg2:#1a1d27;--bg3:#222536;
+  --border:#2e3248;--text:#e8eaf0;--text2:#8b90a7;--text3:#555a72;
+  --green:#1D9E75;--green-dk:#0F6E56;--green-bg:#0d2e22;
+  --amber:#BA7517;--amber-bg:#2d1f05;
+  --red:#D85A30;--red-bg:#2d140a;
+  --blue:#378ADD;--blue-bg:#0a1e35;
+  --purple:#9E7FDD;--purple-bg:#1a1535;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.wrap{max-width:1280px;margin:0 auto;padding:20px}
+
+/* Top */
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.page-title{font-size:19px;font-weight:600}
+.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--green)}
+.panel{display:none}.panel.active{display:block}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}
+.btn-p{background:var(--green);border-color:var(--green);color:#fff}
+.btn-p:hover{background:var(--green-dk)}
+.btn-danger{border-color:var(--red);color:var(--red)}
+.btn-danger:hover{background:var(--red-bg)}
+.btn-sm{padding:5px 10px;font-size:11px}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+.kpi-val{font-size:20px;font-weight:700}
+.kpi-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-blue{background:var(--blue-bg);color:var(--blue)}
+.b-purple{background:var(--purple-bg);color:var(--purple)}
+.b-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+
+/* Pipeline Board */
+.board{display:grid;grid-template-columns:repeat(6,minmax(190px,1fr));gap:10px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);min-height:500px;display:flex;flex-direction:column}
+.col-head{padding:12px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.col-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.col-count{font-size:11px;color:var(--text2);margin-top:3px}
+.col-body{flex:1;padding:8px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.col-footer{padding:6px 8px;border-top:1px solid var(--border)}
+
+/* Lead Card */
+.lead-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 11px;cursor:pointer;transition:all .15s}
+.lead-card:hover{border-color:var(--green);background:var(--bg2)}
+.lead-name{font-size:12px;font-weight:600;margin-bottom:4px}
+.lead-meta{font-size:10px;color:var(--text2);display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.lead-budget{font-size:11px;font-weight:600;color:var(--green)}
+.lead-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.lead-tag{font-size:9px;padding:1px 6px;border-radius:20px;font-weight:600}
+.tag-fb{background:var(--blue-bg);color:var(--blue)}
+.tag-tt{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.tag-walk{background:var(--purple-bg);color:var(--purple)}
+.tag-line{background:var(--green-bg);color:var(--green)}
+.tag-hot{background:var(--red-bg);color:var(--red)}
+.tag-warm{background:var(--amber-bg);color:var(--amber)}
+.tag-cold{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.lead-date{font-size:10px;color:var(--text3);margin-top:4px}
+.overdue{border-color:var(--red)!important}
+.overdue .lead-date{color:var(--red)}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:560px;margin:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fg-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;color:var(--text2)}
+.inp{padding:8px 11px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);width:100%}
+.inp:focus{outline:none;border-color:var(--green)}
+textarea.inp{resize:vertical;min-height:68px;font-family:inherit}
+select.inp{cursor:pointer}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.modal-footer-right{display:flex;gap:8px}
+
+/* Detail modal */
+.detail-section{margin-bottom:14px}
+.detail-section-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.detail-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.detail-row:last-child{border-bottom:none}
+.detail-key{color:var(--text2)}
+.detail-val{font-weight:500;text-align:right;max-width:60%}
+.timeline-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.timeline-item:last-child{border-bottom:none}
+.tl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.tl-text{font-size:12px;line-height:1.5}
+.tl-time{font-size:10px;color:var(--text2);margin-top:2px}
+.note-inp{width:100%;padding:7px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-family:inherit;resize:none;min-height:56px}
+.note-inp:focus{outline:none;border-color:var(--green)}
+
+/* Stage selector */
+.stage-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.stage-btn{padding:8px 6px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);text-align:center;transition:all .15s}
+.stage-btn:hover{background:var(--bg2)}
+.stage-btn.active{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filter-inp{padding:6px 10px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text)}
+.filter-inp:focus{outline:none;border-color:var(--green)}
+
+/* Funnel */
+.funnel-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.funnel-row:last-child{border-bottom:none}
+.funnel-lbl{font-size:12px;color:var(--text2);width:90px;flex-shrink:0}
+.funnel-bg{flex:1;background:var(--bg3);border-radius:3px;height:10px;overflow:hidden}
+.funnel-fill{height:100%;border-radius:3px;transition:width .5s}
+.funnel-n{font-size:12px;font-weight:600;width:30px;text-align:right;flex-shrink:0}
+.funnel-pct{font-size:10px;color:var(--text2);width:36px;text-align:right;flex-shrink:0}
+
+.prog-bg{background:var(--bg3);border-radius:3px;height:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:800px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+/* ERP fit override */
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-size:12px}
+.wrap{max-width:none;width:100%;height:100vh;padding:12px 14px;overflow:hidden}
+.topbar{margin-bottom:10px}
+.page-title{font-size:17px}.page-sub{font-size:11px}
+.kpi-row{grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.kpi{padding:9px 10px;min-width:0}.kpi-val{font-size:18px}.kpi-sub,.kpi-label{font-size:10px}
+.tabs{margin-bottom:10px}.tab{padding:7px 12px;font-size:12px}
+.board{display:flex;gap:6px;overflow:hidden;padding-bottom:0}
+.board>*{min-width:0}
+.col{flex:1 1 0;width:0;min-width:0;min-height:calc(100vh - 230px);overflow:hidden}
+.col *{min-width:0}
+.col-head{padding:9px 9px 6px}.col-title{font-size:11px}.col-count{font-size:10px}
+.col-body{padding:7px;gap:6px;overflow:hidden}
+.lead-card{padding:8px;border-radius:6px;overflow:hidden}.lead-name{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lead-meta{font-size:9px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lead-budget{font-size:10px}.lead-tags{gap:3px;margin-top:4px;overflow:hidden}.lead-tag{font-size:8px;padding:1px 5px;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.col-footer{padding:6px}.col-footer .btn{width:100%;justify-content:center}.btn{padding:6px 8px;font-size:11px}
+.tbl{font-size:11px}.tbl th,.tbl td{padding:7px 8px}
+@media(max-width:900px){.board{grid-template-columns:repeat(6,minmax(110px,1fr))}.kpi-row{grid-template-columns:repeat(6,minmax(92px,1fr))}.wrap{overflow:auto}.board{overflow-x:auto}.col{min-height:420px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Top -->
+  <div class="topbar">
+    <div>
+      <h1 class="page-title">🎯 CRM — Sales Pipeline</h1>
+      <p class="page-sub">ติดตาม Lead ตั้งแต่สนใจจนถึงเซ็นสัญญา</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="sw('board')">📋 Board</button>
+      <button class="btn" onclick="sw('list')">📄 รายการ</button>
+      <button class="btn" onclick="sw('report')">📊 รายงาน</button>
+      <button class="btn btn-p" onclick="openAddLead()">+ เพิ่ม Lead</button>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">Lead ทั้งหมด</div><div class="kpi-val" id="kpi-total">0</div><div class="kpi-sub">ทุกสถานะ</div></div>
+    <div class="kpi"><div class="kpi-label">Lead ใหม่วันนี้</div><div class="kpi-val up" id="kpi-new">0</div><div class="kpi-sub">รอติดต่อ</div></div>
+    <div class="kpi"><div class="kpi-label">นัดคุยวันนี้</div><div class="kpi-val" style="color:var(--blue)" id="kpi-apt">0</div><div class="kpi-sub">รายการ</div></div>
+    <div class="kpi"><div class="kpi-label">เซ็นสัญญาเดือนนี้</div><div class="kpi-val up" id="kpi-closed">0</div><div class="kpi-sub">ราย</div></div>
+    <div class="kpi"><div class="kpi-label">มูลค่ารวม</div><div class="kpi-val up" id="kpi-value" style="font-size:16px">฿0</div><div class="kpi-sub">Pipeline</div></div>
+    <div class="kpi"><div class="kpi-label">งานล่าช้า</div><div class="kpi-val dn" id="kpi-overdue">0</div><div class="kpi-sub">ต้องติดตามด่วน</div></div>
+  </div>
+
+  <!-- Tabs (view) -->
+  <div class="tabs">
+    <button class="tab active" id="tab-board" onclick="sw('board')">📋 Kanban Board</button>
+    <button class="tab" id="tab-list"  onclick="sw('list')">📄 รายการทั้งหมด</button>
+    <button class="tab" id="tab-report" onclick="sw('report')">📊 รายงาน Pipeline</button>
+  </div>
+
+  <!-- ===== BOARD ===== -->
+  <div class="panel active" id="panel-board">
+    <div class="board" id="board"></div>
+  </div>
+
+  <!-- ===== LIST ===== -->
+  <div class="panel" id="panel-list">
+    <div class="filter-bar">
+      <input class="filter-inp" id="search-inp" placeholder="🔍 ค้นหาชื่อ / เบอร์ / โครงการ" oninput="renderList()" style="min-width:220px">
+      <select class="filter-inp" id="filter-stage" onchange="renderList()">
+        <option value="all">ทุกขั้นตอน</option>
+        <option value="new">Lead ใหม่</option>
+        <option value="contacted">ติดต่อแล้ว</option>
+        <option value="appointed">นัดคุย</option>
+        <option value="quoted">เสนอราคา</option>
+        <option value="deposited">มัดจำ</option>
+        <option value="signed">เซ็นสัญญา</option>
+      </select>
+      <select class="filter-inp" id="filter-source" onchange="renderList()">
+        <option value="all">ทุกแหล่งที่มา</option>
+        <option value="Facebook">Facebook</option>
+        <option value="TikTok">TikTok</option>
+        <option value="Walk-in">Walk-in</option>
+        <option value="Line OA">Line OA</option>
+        <option value="แนะนำ">แนะนำ</option>
+      </select>
+      <select class="filter-inp" id="filter-score" onchange="renderList()">
+        <option value="all">ทุกระดับ</option>
+        <option value="hot">🔥 Hot</option>
+        <option value="warm">🌤 Warm</option>
+        <option value="cold">❄️ Cold</option>
+      </select>
+      <span id="list-count" style="font-size:12px;color:var(--text2);margin-left:auto"></span>
+    </div>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ชื่อ</th>
+          <th>เบอร์โทร</th>
+          <th>แหล่งที่มา</th>
+          <th>โครงการสนใจ</th>
+          <th>งบประมาณ</th>
+          <th style="text-align:center">ขั้นตอน</th>
+          <th style="text-align:center">ระดับ</th>
+          <th>ติดตามครั้งถัดไป</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="list-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== REPORT ===== -->
+  <div class="panel" id="panel-report">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="card" style="padding:16px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text2)">📊 Pipeline Funnel</div>
+        <div id="funnel-chart"></div>
+      </div>
+      <div class="card" style="padding:16px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text2)">📡 แหล่งที่มา Lead</div>
+        <div id="source-chart"></div>
+      </div>
+    </div>
+    <div class="card">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">ขั้นตอน</th>
+          <th style="text-align:right">จำนวน</th>
+          <th style="text-align:right">มูลค่ารวม</th>
+          <th style="text-align:right">Conversion</th>
+          <th style="text-align:right">ระยะเวลาเฉลี่ย</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="report-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- Modal: Add/Edit Lead -->
+<div class="overlay" id="overlay-lead">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="lead-modal-title">+ เพิ่ม Lead ใหม่</span>
+      <button class="btn btn-sm" onclick="closeModal('overlay-lead')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">ชื่อ - นามสกุล *</label><input class="inp" id="lf-name" placeholder="เช่น คุณสมชาย ใจดี"></div>
+      <div class="form-group"><label class="form-label">เบอร์โทรศัพท์ *</label><input class="inp" id="lf-phone" placeholder="08x-xxx-xxxx" type="tel"></div>
+      <div class="form-group"><label class="form-label">Line ID</label><input class="inp" id="lf-line" placeholder="@lineid"></div>
+      <div class="form-group"><label class="form-label">แหล่งที่มา</label>
+        <select class="inp" id="lf-source">
+          <option value="Facebook">Facebook Ads</option>
+          <option value="TikTok">TikTok</option>
+          <option value="Walk-in">Walk-in</option>
+          <option value="Line OA">Line OA</option>
+          <option value="แนะนำ">แนะนำจากลูกค้า</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">แคมเปญที่มาจาก</label><input class="inp" id="lf-campaign" placeholder="เช่น บ้านเดี่ยว 3ห้องนอน"></div>
+      <div class="form-group"><label class="form-label">งบประมาณ (บาท)</label><input class="inp" id="lf-budget" type="number" placeholder="เช่น 3500000"></div>
+      <div class="form-group fg-full"><label class="form-label">โครงการ / แบบบ้านที่สนใจ</label><input class="inp" id="lf-interest" placeholder="เช่น บ้านเดี่ยว 2 ชั้น 3 ห้องนอน ย่านลาดพร้าว"></div>
+      <div class="form-group"><label class="form-label">ขั้นตอนปัจจุบัน</label>
+        <select class="inp" id="lf-stage">
+          <option value="new">Lead ใหม่</option>
+          <option value="contacted">ติดต่อแล้ว</option>
+          <option value="appointed">นัดคุย</option>
+          <option value="quoted">เสนอราคา</option>
+          <option value="deposited">มัดจำ</option>
+          <option value="signed">เซ็นสัญญา</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">ระดับความสนใจ</label>
+        <select class="inp" id="lf-score">
+          <option value="hot">🔥 Hot — สนใจมาก</option>
+          <option value="warm">🌤 Warm — พอสนใจ</option>
+          <option value="cold">❄️ Cold — ยังไม่แน่ใจ</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">วันนัดคุย / ติดตามครั้งถัดไป</label><input class="inp" id="lf-next-date" type="datetime-local"></div>
+      <div class="form-group"><label class="form-label">ผู้รับผิดชอบ</label><input class="inp" id="lf-owner" placeholder="เช่น คุณสมหญิง"></div>
+      <div class="form-group fg-full"><label class="form-label">หมายเหตุ</label><textarea class="inp" id="lf-note" placeholder="เช่น โทรพุธเช้า สนใจแบบ A4 งบ 3.5M พร้อมดาวน์ 20%"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del-lead" onclick="deleteLead()" style="display:none">🗑 ลบ</button>
+      <div class="modal-footer-right">
+        <button class="btn" onclick="closeModal('overlay-lead')">ยกเลิก</button>
+        <button class="btn btn-p" onclick="saveLead()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Lead Detail -->
+<div class="overlay" id="overlay-detail">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">
+      <span id="detail-name">รายละเอียด Lead</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" id="btn-edit-lead" onclick="editFromDetail()">✏️ แก้ไข</button>
+        <button class="btn btn-sm" onclick="closeModal('overlay-detail')">✕</button>
+      </div>
+    </div>
+
+    <!-- Stage progress -->
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:6px">
+        <span>ขั้นตอนปัจจุบัน</span>
+        <span id="detail-stage-label"></span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" id="detail-stage-prog" style="background:var(--green)"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <div class="stage-picker" id="detail-stage-picker" style="width:100%"></div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">ข้อมูลลูกค้า</div>
+      <div id="detail-info"></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">บันทึกการติดตาม</div>
+      <div id="detail-timeline" style="max-height:180px;overflow-y:auto;margin-bottom:8px"></div>
+      <div style="display:flex;gap:6px">
+        <textarea class="note-inp" id="new-note-inp" placeholder="เพิ่มบันทึก เช่น โทรแล้ว สนใจแบบ A4..." rows="2"></textarea>
+        <button class="btn btn-p btn-sm" style="align-self:flex-end;white-space:nowrap" onclick="addNote()">+ บันทึก</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" onclick="deleteLeadFromDetail()">🗑 ลบ Lead นี้</button>
+      <button class="btn" onclick="closeModal('overlay-detail')">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Stages config ──
+const STAGES = [
+  { key:'new',       label:'Lead ใหม่',    color:'#378ADD', dot:'#378ADD' },
+  { key:'contacted', label:'ติดต่อแล้ว',   color:'#9E7FDD', dot:'#9E7FDD' },
+  { key:'appointed', label:'นัดคุย',       color:'#1D9E75', dot:'#1D9E75' },
+  { key:'quoted',    label:'เสนอราคา',    color:'#EF9F27', dot:'#EF9F27' },
+  { key:'deposited', label:'มัดจำ',        color:'#E07B39', dot:'#E07B39' },
+  { key:'signed',    label:'เซ็นสัญญา',   color:'#D85A30', dot:'#D85A30' },
+];
+const STAGE_PCT = { new:8, contacted:25, appointed:42, quoted:60, quoted:60, deposited:80, signed:100 };
+
+// ── State ──
+let leads = [], nextId = 1, currentDetailId = null, editingId = null;
+
+// ── Demo data ──
+function loadDemo(){
+  const today = new Date();
+  const fmt = (d) => d.toISOString().slice(0,16);
+  const past = (h) => { const d=new Date(today); d.setHours(d.getHours()-h); return fmt(d); };
+  const future = (h) => { const d=new Date(today); d.setHours(d.getHours()+h); return fmt(d); };
+
+  leads = [
+    { id:1,  name:'คุณสมชาย วงศ์ดี',    phone:'081-234-5678', line:'@somchai', source:'Facebook', campaign:'บ้านเดี่ยว 3ห้องนอน', budget:3500000, interest:'บ้านเดี่ยว 2ชั้น 3ห้องนอน ลาดพร้าว', stage:'new',       score:'hot',  nextDate:future(2),   owner:'คุณสมหญิง', note:'สนใจมาก โทรกลับด่วน', notes:[{text:'รับ Lead จาก Facebook Ads',time:past(2),color:'#378ADD'}] },
+    { id:2,  name:'คุณนภา ศรีสุข',       phone:'082-345-6789', line:'',          source:'TikTok',  campaign:'Reel บ้านใหม่',        budget:2800000, interest:'ทาวน์โฮม 3ชั้น',               stage:'contacted', score:'warm', nextDate:future(24),  owner:'คุณวิชัย',    note:'', notes:[{text:'โทรแนะนำตัวแล้ว นัดพรุ่งนี้',time:past(5),color:'#9E7FDD'}] },
+    { id:3,  name:'คุณวิชัย ใจกว้าง',    phone:'083-456-7890', line:'@wichai',   source:'Walk-in', campaign:'',                      budget:5000000, interest:'บ้านเดี่ยว Premium',           stage:'appointed', score:'hot',  nextDate:future(3),   owner:'คุณสมหญิง', note:'นัด 14:00 น. วันนี้', notes:[{text:'Walk-in เข้ามาดูโชว์รูม',time:past(48),color:'#1D9E75'},{text:'นัดคุยแบบบ้านวันนี้',time:past(1),color:'#1D9E75'}] },
+    { id:4,  name:'คุณอรอุมา พรมดี',     phone:'084-567-8901', line:'@orauma',   source:'Line OA', campaign:'',                      budget:3200000, interest:'บ้านเดี่ยว 3ห้อง',            stage:'quoted',    score:'warm', nextDate:future(48),  owner:'คุณวิชัย',    note:'ส่งใบเสนอราคาแล้ว', notes:[{text:'ส่งใบเสนอราคา 3.2M',time:past(24),color:'#EF9F27'}] },
+    { id:5,  name:'คุณประเสริฐ มั่นคง',  phone:'085-678-9012', line:'@prasert',  source:'แนะนำ',   campaign:'',                      budget:4500000, interest:'บ้านเดี่ยว 4ห้องนอน',         stage:'deposited', score:'hot',  nextDate:future(72),  owner:'คุณสมหญิง', note:'มัดจำ 100,000 แล้ว', notes:[{text:'วางมัดจำ 100,000 บาท',time:past(72),color:'#E07B39'}] },
+    { id:6,  name:'คุณมาลี รุ่งเรือง',   phone:'086-789-0123', line:'@malee',    source:'Facebook', campaign:'บ้านเดี่ยว Premium',   budget:6000000, interest:'บ้านเดี่ยว Premium',           stage:'signed',    score:'hot',  nextDate:'',          owner:'คุณวิชัย',    note:'เซ็นสัญญาแล้ว', notes:[{text:'เซ็นสัญญาสำเร็จ 5.8M',time:past(120),color:'#D85A30'}] },
+    { id:7,  name:'คุณชัยพร สดใส',       phone:'087-890-1234', line:'',          source:'TikTok',  campaign:'Content บ้านเดี่ยว',   budget:2500000, interest:'ทาวน์โฮม 1.59M',             stage:'new',       score:'cold', nextDate:future(96),  owner:'คุณวิชัย',    note:'', notes:[] },
+    { id:8,  name:'คุณกมลา ทองดี',       phone:'088-901-2345', line:'@kamala',   source:'Facebook', campaign:'ทาวน์โฮม 1.59M',       budget:1800000, interest:'ทาวน์โฮม',                     stage:'contacted', score:'warm', nextDate:past(12),    owner:'คุณสมหญิง', note:'เกินกำหนด! ยังไม่ได้โทร', notes:[{text:'ส่งข้อมูลทาง Line',time:past(36),color:'#9E7FDD'}] },
+  ];
+  nextId = 9;
+  renderAll(); updateKPI();
+}
+
+// ── Render ──
+function renderAll(){ renderBoard(); renderList(); renderReport(); }
+
+function renderBoard(){
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  STAGES.forEach(s => {
+    const stageLeads = leads.filter(l => l.stage === s.key);
+    const totalVal = stageLeads.reduce((sum,l)=>sum+Number(l.budget||0),0);
+    let cards = stageLeads.map(l => buildLeadCard(l)).join('');
+    board.innerHTML += `
+      <div class="col">
+        <div class="col-head">
+          <div class="col-title">
+            <div class="col-dot" style="background:${s.color}"></div>
+            ${s.label}
+            <span class="badge" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${stageLeads.length}</span>
+          </div>
+          <div class="col-count">฿${(totalVal/1000000).toFixed(1)}M</div>
+        </div>
+        <div class="col-body">${cards}</div>
+        <div class="col-footer">
+          <button class="btn btn-sm" style="width:100%;justify-content:center" onclick="openAddLeadStage('${s.key}')">+ เพิ่ม</button>
+        </div>
+      </div>`;
+  });
+}
+
+function buildLeadCard(l){
+  const srcTag = l.source==='Facebook'?'tag-fb':l.source==='TikTok'?'tag-tt':l.source==='Walk-in'?'tag-walk':l.source==='Line OA'?'tag-line':'tag-fb';
+  const scoreTag = l.score==='hot'?'tag-hot':l.score==='warm'?'tag-warm':'tag-cold';
+  const scoreLabel = l.score==='hot'?'🔥 Hot':l.score==='warm'?'🌤 Warm':'❄️ Cold';
+  const now = new Date();
+  const nextD = l.nextDate ? new Date(l.nextDate) : null;
+  const overdue = nextD && nextD < now && l.stage !== 'signed';
+  const dateStr = nextD ? (overdue?'⚠️ เกินกำหนด: ':'📅 ') + nextD.toLocaleDateString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+  return `<div class="lead-card ${overdue?'overdue':''}" onclick="openDetail(${l.id})">
+    <div class="lead-name">${l.name}</div>
+    <div class="lead-meta">
+      <span>${l.phone}</span>
+      ${l.owner?`<span>• ${l.owner}</span>`:''}
+    </div>
+    ${l.interest?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">${l.interest}</div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="lead-budget">${l.budget?'฿'+(l.budget/1000000).toFixed(1)+'M':''}</div>
+    </div>
+    <div class="lead-tags">
+      <span class="lead-tag ${srcTag}">${l.source}</span>
+      <span class="lead-tag ${scoreTag}">${scoreLabel}</span>
+      ${l.campaign?`<span class="lead-tag" style="background:var(--bg);color:var(--text2);border:1px solid var(--border)">${l.campaign.slice(0,12)}${l.campaign.length>12?'…':''}</span>`:''}
+    </div>
+    ${dateStr?`<div class="lead-date">${dateStr}</div>`:''}
+  </div>`;
+}
+
+function renderList(){
+  const q   = (document.getElementById('search-inp')?.value||'').toLowerCase();
+  const st  = document.getElementById('filter-stage')?.value || 'all';
+  const src = document.getElementById('filter-source')?.value || 'all';
+  const sc  = document.getElementById('filter-score')?.value || 'all';
+  let filtered = leads.filter(l =>
+    (st  ==='all' || l.stage  ===st)  &&
+    (src ==='all' || l.source ===src) &&
+    (sc  ==='all' || l.score  ===sc)  &&
+    (!q || l.name.toLowerCase().includes(q) || l.phone.includes(q) || (l.interest||'').toLowerCase().includes(q))
+  );
+  document.getElementById('list-count').textContent = filtered.length+' รายการ';
+  const tbody = document.getElementById('list-tbody');
+  const stageMap = Object.fromEntries(STAGES.map(s=>[s.key,s]));
+  const scoreLabel = {hot:'🔥 Hot',warm:'🌤 Warm',cold:'❄️ Cold'};
+  const scoreBadge = {hot:'b-red',warm:'b-amber',cold:'b-gray'};
+  tbody.innerHTML = filtered.map(l=>{
+    const s = stageMap[l.stage];
+    const now = new Date();
+    const nextD = l.nextDate ? new Date(l.nextDate) : null;
+    const overdue = nextD && nextD < now && l.stage!=='signed';
+    const nextStr = nextD ? nextD.toLocaleDateString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<tr style="cursor:pointer" onclick="openDetail(${l.id})">
+      <td style="padding-left:14px;font-weight:500">${l.name}</td>
+      <td>${l.phone}</td>
+      <td><span class="badge b-blue">${l.source}</span></td>
+      <td style="color:var(--text2);font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.interest||'—'}</td>
+      <td style="font-weight:500;color:var(--green)">${l.budget?'฿'+(l.budget/1000000).toFixed(2)+'M':'—'}</td>
+      <td style="text-align:center"><span class="badge" style="background:var(--bg3);color:${s.color};border:1px solid ${s.color}">${s.label}</span></td>
+      <td style="text-align:center"><span class="badge ${scoreBadge[l.score]}">${scoreLabel[l.score]}</span></td>
+      <td style="color:${overdue?'var(--red)':'var(--text2)'};font-size:11px">${overdue?'⚠️ ':''} ${nextStr}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" onclick="event.stopPropagation();openDetail(${l.id})">👁</button>
+          <button class="btn btn-sm" onclick="event.stopPropagation();openEditLead(${l.id})">✏️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderReport(){
+  // Funnel
+  const funnel = document.getElementById('funnel-chart');
+  const maxCount = Math.max(...STAGES.map(s=>leads.filter(l=>l.stage===s.key).length), 1);
+  funnel.innerHTML = STAGES.map(s=>{
+    const cnt = leads.filter(l=>l.stage===s.key).length;
+    const pct = Math.round(cnt/Math.max(leads.length,1)*100);
+    return `<div class="funnel-row">
+      <span class="funnel-lbl">${s.label}</span>
+      <div class="funnel-bg"><div class="funnel-fill" style="width:${Math.round(cnt/maxCount*100)}%;background:${s.color}"></div></div>
+      <span class="funnel-n">${cnt}</span>
+      <span class="funnel-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  // Source
+  const srcChart = document.getElementById('source-chart');
+  const sources = ['Facebook','TikTok','Walk-in','Line OA','แนะนำ','อื่นๆ'];
+  const srcColors = ['#1877F2','#000','#9E7FDD','#1D9E75','#EF9F27','#8b90a7'];
+  const maxSrc = Math.max(...sources.map(s=>leads.filter(l=>l.source===s).length), 1);
+  srcChart.innerHTML = sources.map((s,i)=>{
+    const cnt = leads.filter(l=>l.source===s).length;
+    if(!cnt) return '';
+    return `<div class="funnel-row">
+      <span class="funnel-lbl">${s}</span>
+      <div class="funnel-bg"><div class="funnel-fill" style="width:${Math.round(cnt/maxSrc*100)}%;background:${srcColors[i]}"></div></div>
+      <span class="funnel-n">${cnt}</span>
+    </div>`;
+  }).join('');
+
+  // Table
+  const tbody = document.getElementById('report-tbody');
+  const stageIdxMap = Object.fromEntries(STAGES.map((s,i)=>[s.key,i]));
+  tbody.innerHTML = STAGES.map((s,i)=>{
+    const cnt = leads.filter(l=>l.stage===s.key).length;
+    const val = leads.filter(l=>l.stage===s.key).reduce((sum,l)=>sum+Number(l.budget||0),0);
+    const conv = i===0 ? '100%' : Math.round(cnt/Math.max(leads.length,1)*100)+'%';
+    return `<tr>
+      <td style="padding-left:14px"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${s.color};display:inline-block"></span>${s.label}</span></td>
+      <td style="text-align:right;font-weight:600">${cnt}</td>
+      <td style="text-align:right">฿${(val/1000000).toFixed(2)}M</td>
+      <td style="text-align:right">${conv}</td>
+      <td style="text-align:right;color:var(--text2)">—</td>
+      <td></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── KPI ──
+function updateKPI(){
+  const now = new Date();
+  const today = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  document.getElementById('kpi-total').textContent = leads.length;
+  document.getElementById('kpi-new').textContent = leads.filter(l=>l.stage==='new').length;
+  document.getElementById('kpi-apt').textContent = leads.filter(l=>{
+    if(!l.nextDate) return false;
+    const d = new Date(l.nextDate);
+    return d >= today && d < new Date(today.getTime()+86400000);
+  }).length;
+  document.getElementById('kpi-closed').textContent = leads.filter(l=>l.stage==='signed').length;
+  const totalVal = leads.reduce((s,l)=>s+Number(l.budget||0),0);
+  document.getElementById('kpi-value').textContent = '฿'+(totalVal/1000000).toFixed(1)+'M';
+  document.getElementById('kpi-overdue').textContent = leads.filter(l=>{
+    if(!l.nextDate||l.stage==='signed') return false;
+    return new Date(l.nextDate) < now;
+  }).length;
+}
+
+// ── Add / Edit Lead ──
+let addStageDefault = 'new';
+function openAddLead(){ addStageDefault='new'; openAddLeadStage('new'); }
+function openAddLeadStage(stage){
+  editingId = null;
+  addStageDefault = stage;
+  document.getElementById('lead-modal-title').textContent = '+ เพิ่ม Lead ใหม่';
+  document.getElementById('btn-del-lead').style.display = 'none';
+  ['lf-name','lf-phone','lf-line','lf-campaign','lf-interest','lf-owner','lf-note'].forEach(id=>document.getElementById(id).value='');
+  ['lf-budget'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('lf-source').value = 'Facebook';
+  document.getElementById('lf-stage').value  = stage;
+  document.getElementById('lf-score').value  = 'warm';
+  document.getElementById('lf-next-date').value = '';
+  document.getElementById('overlay-lead').classList.add('open');
+}
+function openEditLead(id){
+  editingId = id;
+  const l = leads.find(x=>x.id===id); if(!l) return;
+  document.getElementById('lead-modal-title').textContent = '✏️ แก้ไข Lead';
+  document.getElementById('btn-del-lead').style.display = 'inline-flex';
+  document.getElementById('lf-name').value     = l.name;
+  document.getElementById('lf-phone').value    = l.phone;
+  document.getElementById('lf-line').value     = l.line||'';
+  document.getElementById('lf-source').value   = l.source;
+  document.getElementById('lf-campaign').value = l.campaign||'';
+  document.getElementById('lf-budget').value   = l.budget||'';
+  document.getElementById('lf-interest').value = l.interest||'';
+  document.getElementById('lf-stage').value    = l.stage;
+  document.getElementById('lf-score').value    = l.score;
+  document.getElementById('lf-next-date').value= l.nextDate||'';
+  document.getElementById('lf-owner').value    = l.owner||'';
+  document.getElementById('lf-note').value     = l.note||'';
+  document.getElementById('overlay-lead').classList.add('open');
+}
+function saveLead(){
+  const name = document.getElementById('lf-name').value.trim();
+  const phone= document.getElementById('lf-phone').value.trim();
+  if(!name){ showToast('กรุณาใส่ชื่อ'); return; }
+  const data = {
+    name, phone,
+    line:     document.getElementById('lf-line').value.trim(),
+    source:   document.getElementById('lf-source').value,
+    campaign: document.getElementById('lf-campaign').value.trim(),
+    budget:   parseInt(document.getElementById('lf-budget').value)||0,
+    interest: document.getElementById('lf-interest').value.trim(),
+    stage:    document.getElementById('lf-stage').value,
+    score:    document.getElementById('lf-score').value,
+    nextDate: document.getElementById('lf-next-date').value,
+    owner:    document.getElementById('lf-owner').value.trim(),
+    note:     document.getElementById('lf-note').value.trim(),
+  };
+  if(editingId){
+    const l = leads.find(x=>x.id===editingId);
+    if(l){ Object.assign(l,data); }
+  } else {
+    leads.push({ id:nextId++, notes:[], ...data });
+  }
+  closeModal('overlay-lead');
+  renderAll(); updateKPI();
+  showToast(editingId ? '✓ แก้ไขแล้ว' : '✓ เพิ่ม Lead แล้ว');
+}
+function deleteLead(){
+  if(!editingId) return;
+  if(!confirm('ลบ Lead นี้?')) return;
+  leads = leads.filter(l=>l.id!==editingId);
+  closeModal('overlay-lead'); renderAll(); updateKPI();
+  showToast('ลบแล้ว');
+}
+function deleteLeadFromDetail(){
+  if(!currentDetailId) return;
+  if(!confirm('ลบ Lead นี้?')) return;
+  leads = leads.filter(l=>l.id!==currentDetailId);
+  closeModal('overlay-detail'); renderAll(); updateKPI();
+  showToast('ลบแล้ว');
+}
+
+// ── Detail Modal ──
+function openDetail(id){
+  currentDetailId = id;
+  const l = leads.find(x=>x.id===id); if(!l) return;
+  document.getElementById('detail-name').textContent = l.name;
+
+  // Stage progress
+  const stageIdx = STAGES.findIndex(s=>s.key===l.stage);
+  const pct = STAGE_PCT[l.stage] || 0;
+  document.getElementById('detail-stage-label').textContent = STAGES[stageIdx]?.label || '';
+  document.getElementById('detail-stage-prog').style.width = pct+'%';
+
+  // Stage picker
+  document.getElementById('detail-stage-picker').innerHTML = STAGES.map(s=>`
+    <div class="stage-btn ${l.stage===s.key?'active':''}" style="${l.stage===s.key?'':''}font-size:10px"
+      onclick="changeStage(${id},'${s.key}')">${s.label}</div>
+  `).join('');
+
+  // Info
+  const srcTag = l.source==='Facebook'?'b-blue':'b-gray';
+  const scoreLabel = {hot:'🔥 Hot',warm:'🌤 Warm',cold:'❄️ Cold'};
+  const scoreBadge = {hot:'b-red',warm:'b-amber',cold:'b-gray'};
+  const nextD = l.nextDate ? new Date(l.nextDate).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  document.getElementById('detail-info').innerHTML = `
+    <div class="detail-row"><span class="detail-key">เบอร์โทร</span><span class="detail-val"><a href="tel:${l.phone}" style="color:var(--green)">${l.phone}</a></span></div>
+    ${l.line?`<div class="detail-row"><span class="detail-key">Line</span><span class="detail-val">${l.line}</span></div>`:''}
+    <div class="detail-row"><span class="detail-key">แหล่งที่มา</span><span class="detail-val"><span class="badge ${srcTag}">${l.source}</span>${l.campaign?` — ${l.campaign}`:''}</span></div>
+    <div class="detail-row"><span class="detail-key">โครงการสนใจ</span><span class="detail-val">${l.interest||'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">งบประมาณ</span><span class="detail-val" style="color:var(--green)">${l.budget?'฿'+(l.budget/1000000).toFixed(2)+'M':'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">ระดับความสนใจ</span><span class="detail-val"><span class="badge ${scoreBadge[l.score]}">${scoreLabel[l.score]}</span></span></div>
+    <div class="detail-row"><span class="detail-key">ผู้รับผิดชอบ</span><span class="detail-val">${l.owner||'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">ติดตามครั้งถัดไป</span><span class="detail-val">${nextD}</span></div>
+    ${l.note?`<div class="detail-row"><span class="detail-key">หมายเหตุ</span><span class="detail-val">${l.note}</span></div>`:''}
+  `;
+
+  // Timeline
+  renderTimeline(l);
+  document.getElementById('new-note-inp').value = '';
+  document.getElementById('overlay-detail').classList.add('open');
+}
+
+function renderTimeline(l){
+  const el = document.getElementById('detail-timeline');
+  if(!l.notes || !l.notes.length){ el.innerHTML='<p style="font-size:12px;color:var(--text2);padding:8px 0">ยังไม่มีบันทึก</p>'; return; }
+  el.innerHTML = [...l.notes].reverse().map(n=>`
+    <div class="timeline-item">
+      <div class="tl-dot" style="background:${n.color||'var(--green)'}"></div>
+      <div><div class="tl-text">${n.text}</div><div class="tl-time">${n.time}</div></div>
+    </div>`).join('');
+}
+
+function changeStage(id, newStage){
+  const l = leads.find(x=>x.id===id); if(!l) return;
+  const oldLabel = STAGES.find(s=>s.key===l.stage)?.label;
+  const newLabel = STAGES.find(s=>s.key===newStage)?.label;
+  l.stage = newStage;
+  const color = STAGES.find(s=>s.key===newStage)?.color || 'var(--green)';
+  if(!l.notes) l.notes = [];
+  l.notes.push({ text:`เลื่อนจาก "${oldLabel}" → "${newLabel}"`, time: new Date().toLocaleString('th-TH'), color });
+  openDetail(id); renderAll(); updateKPI();
+  showToast('✓ อัพเดทขั้นตอนแล้ว');
+}
+
+function addNote(){
+  const text = document.getElementById('new-note-inp').value.trim();
+  if(!text) return;
+  const l = leads.find(x=>x.id===currentDetailId); if(!l) return;
+  if(!l.notes) l.notes = [];
+  l.notes.push({ text, time: new Date().toLocaleString('th-TH'), color:'var(--green)' });
+  document.getElementById('new-note-inp').value = '';
+  renderTimeline(l);
+  showToast('✓ เพิ่มบันทึกแล้ว');
+}
+
+function editFromDetail(){
+  closeModal('overlay-detail');
+  openEditLead(currentDetailId);
+}
+
+// ── Tabs ──
+function sw(id){
+  ['board','list','report'].forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('active', t===id);
+    document.getElementById('panel-'+t)?.classList.toggle('active', t===id);
+  });
+  if(id==='list') renderList();
+  if(id==='report') renderReport();
+}
+
+// ── Modal ──
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── Toast ──
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ── Init ──
+loadDemo();
+</script>
+</body>
+</html>

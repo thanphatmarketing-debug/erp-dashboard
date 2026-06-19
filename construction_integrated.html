@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction — ติดตามงานก่อสร้าง</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f1117;--bg2:#1a1d27;--bg3:#222536;--border:#2e3248;--text:#e8eaf0;--text2:#8b90a7;--text3:#555a72;--green:#1D9E75;--green-dk:#0F6E56;--green-bg:#0d2e22;--amber:#BA7517;--amber-bg:#2d1f05;--red:#D85A30;--red-bg:#2d140a;--blue:#378ADD;--blue-bg:#0a1e35;--purple:#9E7FDD;--purple-bg:#1a1535;--radius:10px;--radius-sm:6px;}
+body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.wrap{max-width:1200px;margin:0 auto;padding:20px}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.page-title{font-size:19px;font-weight:600}.page-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab:hover{color:var(--text)}.tab.active{color:var(--text);border-bottom-color:var(--green)}
+.panel{display:none}.panel.active{display:block}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{background:var(--bg3)}.btn-p{background:var(--green);border-color:var(--green);color:#fff}.btn-p:hover{background:var(--green-dk)}
+.btn-danger{border-color:var(--red);color:var(--red)}.btn-danger:hover{background:var(--red-bg)}.btn-sm{padding:5px 10px;font-size:11px}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px}.kpi-val{font-size:20px;font-weight:700}.kpi-sub{font-size:10px;color:var(--text2);margin-top:2px}
+.up{color:var(--green)}.dn{color:var(--red)}
+.badge{display:inline-flex;align-items:center;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green)}.b-amber{background:var(--amber-bg);color:var(--amber)}.b-red{background:var(--red-bg);color:var(--red)}.b-blue{background:var(--blue-bg);color:var(--blue)}.b-gray{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.proj-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s}
+.proj-card:hover{border-color:var(--green)}
+.proj-card.overdue{border-color:var(--red)}
+.proj-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.proj-client{font-size:11px;color:var(--text2);margin-bottom:8px}
+.stage-steps{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap}
+.step{flex:1;min-width:12px;height:6px;border-radius:2px;background:var(--bg3)}
+.step.done{background:var(--green)}.step.active{background:var(--amber)}.step.late{background:var(--red)}
+.prog-bg{background:var(--bg3);border-radius:3px;height:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:600px;margin:auto}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fg-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-label{font-size:12px;color:var(--text2)}
+.inp{padding:8px 11px;font-size:13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);width:100%}
+.inp:focus{outline:none;border-color:var(--green)}
+textarea.inp{resize:vertical;min-height:60px;font-family:inherit}
+select.inp{cursor:pointer}
+.modal-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.stage-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.stage-row:last-child{border-bottom:none}
+.stage-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:800px){.grid{grid-template-columns:1fr 1fr}.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:1fr 1fr}}
+/* ERP fit override */
+html,body{width:100%;min-height:100%;overflow:hidden}
+body{font-size:12px}
+.wrap{max-width:none;width:100%;height:100vh;padding:12px 14px;overflow:auto}
+.topbar{margin-bottom:10px}.page-title{font-size:17px}.page-sub{font-size:11px}
+.kpi-row{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.kpi{padding:9px 10px}.kpi-val{font-size:18px}.kpi-label,.kpi-sub{font-size:10px}
+.tabs{margin-bottom:10px}.tab{padding:7px 12px;font-size:12px}
+.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.card{padding:10px}.tbl{font-size:11px}.tbl th,.tbl td{padding:7px 8px;white-space:normal}
+.modal{max-height:92vh;overflow:auto}.inp{min-height:34px;font-size:12px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1 class="page-title">🏗 Construction — ติดตามงานก่อสร้าง</h1>
+      <p class="page-sub">ติดตามสถานะงานก่อสร้างทุกโครงการ พร้อมแจ้งเตือนงานล่าช้า</p>
+    </div>
+    <button class="btn btn-p" onclick="openAddProject()">+ เพิ่มโครงการ</button>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-label">โครงการทั้งหมด</div><div class="kpi-val" id="kpi-total">0</div><div class="kpi-sub">กำลังดำเนินการ</div></div>
+    <div class="kpi"><div class="kpi-label">ตามแผน</div><div class="kpi-val up" id="kpi-ontrack">0</div><div class="kpi-sub">โครงการ</div></div>
+    <div class="kpi"><div class="kpi-label">ล่าช้า</div><div class="kpi-val dn" id="kpi-late">0</div><div class="kpi-sub">โครงการ</div></div>
+    <div class="kpi"><div class="kpi-label">ส่งมอบแล้ว</div><div class="kpi-val" style="color:var(--blue)" id="kpi-done">0</div><div class="kpi-sub">โครงการ</div></div>
+    <div class="kpi"><div class="kpi-label">ส่งมอบเดือนนี้</div><div class="kpi-val" style="color:var(--amber)" id="kpi-soon">0</div><div class="kpi-sub">โครงการ</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-grid" onclick="sw('grid')">🗂 Card View</button>
+    <button class="tab" id="tab-list" onclick="sw('list')">📄 List View</button>
+  </div>
+
+  <div class="panel active" id="panel-grid">
+    <div class="grid" id="proj-grid"></div>
+  </div>
+
+  <div class="panel" id="panel-list">
+    <div class="card">
+      <table class="tbl">
+        <thead><tr>
+          <th style="padding-left:14px">โครงการ</th>
+          <th>ลูกค้า</th>
+          <th>ขั้นตอนปัจจุบัน</th>
+          <th style="text-align:center">%</th>
+          <th>เริ่ม</th>
+          <th>กำหนดส่ง</th>
+          <th style="text-align:center">สถานะ</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="proj-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add/Edit Project -->
+<div class="overlay" id="overlay-proj">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="proj-modal-title">+ เพิ่มโครงการใหม่</span>
+      <button class="btn btn-sm" onclick="closeModal('overlay-proj')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group fg-full"><label class="form-label">ชื่อโครงการ *</label><input class="inp" id="pf-name" placeholder="เช่น พิชญา วิลล่า หลังที่ 3"></div>
+      <div class="form-group fg-full"><label class="form-label">ชื่อลูกค้า *</label><input class="inp" id="pf-client" placeholder="เช่น คุณสมชาย วงศ์ดี"></div>
+      <div class="form-group fg-full"><label class="form-label">ที่ตั้ง</label><input class="inp" id="pf-location" placeholder="เช่น ลาดพร้าว ซอย 12"></div>
+      <div class="form-group"><label class="form-label">วันเริ่มก่อสร้าง</label><input class="inp" id="pf-start" type="date"></div>
+      <div class="form-group"><label class="form-label">กำหนดส่งมอบ</label><input class="inp" id="pf-deadline" type="date"></div>
+      <div class="form-group"><label class="form-label">ขั้นตอนปัจจุบัน</label>
+        <select class="inp" id="pf-stage">
+          <option value="0">เริ่มงาน</option>
+          <option value="1">โครงสร้าง</option>
+          <option value="2">ระบบ</option>
+          <option value="3">สถาปัตย์</option>
+          <option value="4">เก็บงาน</option>
+          <option value="5">ส่งมอบ</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">สถานะ</label>
+        <select class="inp" id="pf-status">
+          <option value="ontrack">ตามแผน</option>
+          <option value="late">ล่าช้า</option>
+          <option value="done">ส่งมอบแล้ว</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">ล่าช้ากี่วัน</label><input class="inp" id="pf-late-days" type="number" min="0" placeholder="0" value="0"></div>
+      <div class="form-group fg-full"><label class="form-label">หมายเหตุ / ปัญหา</label><textarea class="inp" id="pf-note" placeholder="เช่น วัสดุมาช้า รอการตรวจสอบ..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger btn-sm" id="btn-del-proj" style="display:none" onclick="deleteProject()">🗑 ลบโครงการ</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeModal('overlay-proj')">ยกเลิก</button>
+        <button class="btn btn-p" onclick="saveProject()">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detail -->
+<div class="overlay" id="overlay-detail">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="detail-proj-name">รายละเอียดโครงการ</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="editProject()">✏️ แก้ไข</button>
+        <button class="btn btn-sm" onclick="closeModal('overlay-detail')">✕</button>
+      </div>
+    </div>
+    <div id="detail-proj-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+const STAGES=['เริ่มงาน','โครงสร้าง','ระบบ','สถาปัตย์','เก็บงาน','ส่งมอบ'];
+const STAGE_COLORS=['#378ADD','#9E7FDD','#1D9E75','#EF9F27','#E07B39','#D85A30'];
+let projects=[], nextPId=1, editingPId=null, currentPId=null;
+
+function loadDemo(){
+  projects=[
+    {id:1,name:'พิชญา วิลล่า',client:'คุณสมชาย วงศ์ดี',location:'ลาดพร้าว ซอย 12',start:'2026-01-01',deadline:'2026-10-01',stage:1,status:'ontrack',lateDays:0,note:''},
+    {id:2,name:'กรีนวูด 2',client:'คุณนภา ศรีสุข',location:'รัชดาภิเษก',start:'2025-12-01',deadline:'2026-09-01',stage:2,status:'ontrack',lateDays:0,note:''},
+    {id:3,name:'ซันไรส์ A3',client:'คุณวิชัย ใจกว้าง',location:'สุขุมวิท 42',start:'2025-11-01',deadline:'2026-08-01',stage:3,status:'late',lateDays:5,note:'ช่างสถาปัตย์ป่วย รอคนใหม่'},
+    {id:4,name:'เดอะโกลด์',client:'คุณอรอุมา พรมดี',location:'พระราม 9',start:'2025-10-01',deadline:'2026-07-01',stage:4,status:'ontrack',lateDays:0,note:''},
+    {id:5,name:'บลูสกาย B1',client:'คุณประเสริฐ มั่นคง',location:'ลาดกระบัง',start:'2026-02-01',deadline:'2026-12-01',stage:0,status:'late',lateDays:12,note:'วัสดุก่อสร้างมาช้า 2 สัปดาห์'},
+    {id:6,name:'ซีนิค วิลล่า',client:'คุณมาลี รุ่งเรือง',location:'สาทร',start:'2025-08-01',deadline:'2026-05-01',stage:5,status:'done',lateDays:0,note:'ส่งมอบเรียบร้อย'},
+  ];
+  nextPId=7;
+  renderAll(); updateKPI();
+}
+
+function renderAll(){ renderGrid(); renderList(); }
+
+function renderGrid(){
+  const grid=document.getElementById('proj-grid');
+  grid.innerHTML=projects.filter(p=>p.status!=='done').map(p=>{
+    const pct=Math.round((p.stage+1)/STAGES.length*100);
+    const stColor=p.status==='late'?'var(--red)':p.status==='done'?'var(--green)':'var(--green)';
+    const stBadge=p.status==='late'?`<span class="badge b-red">ล่าช้า ${p.lateDays} วัน</span>`:
+                  p.status==='done'?'<span class="badge b-green">ส่งมอบแล้ว</span>':
+                  '<span class="badge b-blue">ตามแผน</span>';
+    const steps=STAGES.map((s,i)=>`<div class="step ${i<p.stage?'done':i===p.stage?p.status==='late'?'late':'active':''}" title="${s}"></div>`).join('');
+    return `<div class="proj-card ${p.status==='late'?'overdue':''}" onclick="openDetail(${p.id})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div class="proj-name">${p.name}</div>${stBadge}
+      </div>
+      <div class="proj-client">👤 ${p.client}</div>
+      <div class="stage-steps">${steps}</div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px">
+        <span>🔧 ${STAGES[p.stage]}</span><span>${pct}%</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" style="width:${pct}%;background:${p.status==='late'?'var(--red)':'var(--green)'}"></div></div>
+      <div style="font-size:10px;color:var(--text2);margin-top:6px">📅 กำหนดส่ง ${fmtDate(p.deadline)}</div>
+      ${p.note?`<div style="font-size:10px;color:var(--amber);margin-top:4px">⚠️ ${p.note}</div>`:''}
+    </div>`;
+  }).join('');
+  // Done projects
+  const done=projects.filter(p=>p.status==='done');
+  if(done.length) grid.innerHTML+=`<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:12px;margin-top:4px;font-size:12px;font-weight:600;color:var(--text2)">✅ ส่งมอบแล้ว (${done.length} โครงการ)</div>`+
+    done.map(p=>`<div class="proj-card" onclick="openDetail(${p.id})" style="opacity:.6">
+      <div class="proj-name">${p.name}</div>
+      <div class="proj-client">👤 ${p.client}</div>
+      <div style="margin-top:6px"><span class="badge b-green">ส่งมอบแล้ว</span></div>
+    </div>`).join('');
+}
+
+function renderList(){
+  const tbody=document.getElementById('proj-tbody');
+  tbody.innerHTML=projects.map(p=>{
+    const pct=Math.round((p.stage+1)/STAGES.length*100);
+    const stBadge=p.status==='late'?`<span class="badge b-red">ล่าช้า ${p.lateDays} วัน</span>`:
+                  p.status==='done'?'<span class="badge b-green">ส่งมอบแล้ว</span>':
+                  '<span class="badge b-blue">ตามแผน</span>';
+    return `<tr style="cursor:pointer" onclick="openDetail(${p.id})">
+      <td style="padding-left:14px;font-weight:500">${p.name}</td>
+      <td style="color:var(--text2)">${p.client}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:${STAGE_COLORS[p.stage]};flex-shrink:0"></span>${STAGES[p.stage]}</span></td>
+      <td style="text-align:center;font-weight:600">${pct}%</td>
+      <td style="color:var(--text2);font-size:11px">${fmtDate(p.start)}</td>
+      <td style="color:var(--text2);font-size:11px">${fmtDate(p.deadline)}</td>
+      <td style="text-align:center">${stBadge}</td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();openEditProject(${p.id})">✏️</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateKPI(){
+  document.getElementById('kpi-total').textContent=projects.filter(p=>p.status!=='done').length;
+  document.getElementById('kpi-ontrack').textContent=projects.filter(p=>p.status==='ontrack').length;
+  document.getElementById('kpi-late').textContent=projects.filter(p=>p.status==='late').length;
+  document.getElementById('kpi-done').textContent=projects.filter(p=>p.status==='done').length;
+  const now=new Date(); const m=now.getMonth(); const y=now.getFullYear();
+  document.getElementById('kpi-soon').textContent=projects.filter(p=>{
+    if(!p.deadline)return false;
+    const d=new Date(p.deadline); return d.getMonth()===m&&d.getFullYear()===y&&p.status!=='done';
+  }).length;
+}
+
+function openDetail(id){
+  currentPId=id;
+  const p=projects.find(x=>x.id===id); if(!p)return;
+  document.getElementById('detail-proj-name').textContent=p.name;
+  const pct=Math.round((p.stage+1)/STAGES.length*100);
+  const steps=STAGES.map((s,i)=>`
+    <div class="stage-row">
+      <div class="stage-dot" style="background:${i<p.stage?'var(--green)':i===p.stage?p.status==='late'?'var(--red)':'var(--amber)':'var(--bg3)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:${i===p.stage?600:400};color:${i<=p.stage?'var(--text)':'var(--text2)'}">${s}</div>
+      </div>
+      ${i===p.stage?`<span class="badge ${p.status==='late'?'b-red':'b-amber'}">กำลังดำเนินการ</span>`:''}
+      ${i<p.stage?'<span class="badge b-green">เสร็จแล้ว</span>':''}
+    </div>`).join('');
+  document.getElementById('detail-proj-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text2)">ลูกค้า</div><div style="font-size:12px;font-weight:600">${p.client}</div></div>
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:8px 10px"><div style="font-size:10px;color:var(--text2)">ที่ตั้ง</div><div style="font-size:12px;font-weight:600">${p.location||'—'}</div></div>
+      <div style="background:${p.status==='late'?'var(--red-bg)':'var(--bg3)'};border-radius:var(--radius-sm);padding:8px 10px">
+        <div style="font-size:10px;color:var(--text2)">สถานะ</div>
+        <div style="font-size:12px;font-weight:600;color:${p.status==='late'?'var(--red)':p.status==='done'?'var(--green)':'var(--blue)'}">${p.status==='late'?'ล่าช้า '+p.lateDays+' วัน':p.status==='done'?'ส่งมอบแล้ว':'ตามแผน'}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">ความคืบหน้า ${pct}%</div>
+    <div class="prog-bg" style="height:8px;margin-bottom:14px"><div class="prog-fill" style="width:${pct}%;background:${p.status==='late'?'var(--red)':'var(--green)'}"></div></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">ขั้นตอนทั้งหมด</div>
+    ${steps}
+    ${p.note?`<div style="margin-top:12px;padding:10px 12px;background:var(--amber-bg);border-radius:var(--radius-sm);font-size:12px;color:var(--amber)">⚠️ ${p.note}</div>`:''}
+    <div style="margin-top:10px;font-size:11px;color:var(--text2)">เริ่ม ${fmtDate(p.start)} • กำหนดส่ง ${fmtDate(p.deadline)}</div>`;
+  document.getElementById('overlay-detail').classList.add('open');
+}
+
+function openAddProject(){
+  editingPId=null;
+  document.getElementById('proj-modal-title').textContent='+ เพิ่มโครงการ';
+  document.getElementById('btn-del-proj').style.display='none';
+  ['pf-name','pf-client','pf-location','pf-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pf-start').value=new Date().toISOString().slice(0,10);
+  document.getElementById('pf-deadline').value='';
+  document.getElementById('pf-stage').value='0';
+  document.getElementById('pf-status').value='ontrack';
+  document.getElementById('pf-late-days').value='0';
+  document.getElementById('overlay-proj').classList.add('open');
+}
+
+function openEditProject(id){
+  editingPId=id;
+  const p=projects.find(x=>x.id===id); if(!p)return;
+  document.getElementById('proj-modal-title').textContent='✏️ แก้ไขโครงการ';
+  document.getElementById('btn-del-proj').style.display='inline-flex';
+  document.getElementById('pf-name').value=p.name;
+  document.getElementById('pf-client').value=p.client;
+  document.getElementById('pf-location').value=p.location||'';
+  document.getElementById('pf-start').value=p.start||'';
+  document.getElementById('pf-deadline').value=p.deadline||'';
+  document.getElementById('pf-stage').value=p.stage;
+  document.getElementById('pf-status').value=p.status;
+  document.getElementById('pf-late-days').value=p.lateDays||0;
+  document.getElementById('pf-note').value=p.note||'';
+  document.getElementById('overlay-proj').classList.add('open');
+}
+
+function editProject(){ closeModal('overlay-detail'); openEditProject(currentPId); }
+
+function saveProject(){
+  const name=document.getElementById('pf-name').value.trim();
+  const client=document.getElementById('pf-client').value.trim();
+  if(!name||!client){showToast('กรุณากรอกชื่อโครงการและลูกค้า');return;}
+  const data={name,client,location:document.getElementById('pf-location').value.trim(),start:document.getElementById('pf-start').value,deadline:document.getElementById('pf-deadline').value,stage:parseInt(document.getElementById('pf-stage').value),status:document.getElementById('pf-status').value,lateDays:parseInt(document.getElementById('pf-late-days').value)||0,note:document.getElementById('pf-note').value.trim()};
+  if(editingPId){Object.assign(projects.find(x=>x.id===editingPId),data);}
+  else{projects.push({id:nextPId++,...data});}
+  closeModal('overlay-proj'); renderAll(); updateKPI();
+  showToast(editingPId?'✓ แก้ไขแล้ว':'✓ เพิ่มโครงการแล้ว');
+}
+
+function deleteProject(){
+  if(!editingPId||!confirm('ลบโครงการนี้?'))return;
+  projects=projects.filter(p=>p.id!==editingPId);
+  closeModal('overlay-proj'); renderAll(); updateKPI(); showToast('ลบแล้ว');
+}
+
+function sw(id){
+  ['grid','list'].forEach(t=>{document.getElementById('tab-'+t)?.classList.toggle('active',t===id);document.getElementById('panel-'+t)?.classList.toggle('active',t===id);});
+  if(id==='list')renderList();
+}
+
+function fmtDate(s){if(!s)return'—';const d=new Date(s);return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+loadDemo();
+</script>
+</body>
+</html>
