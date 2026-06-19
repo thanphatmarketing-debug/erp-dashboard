@@ -1042,6 +1042,7 @@
             <div class="marketing-live-actions">
               <span class="marketing-live-time" id="marketing-live-update">อัปเดตล่าสุด: Demo</span>
               <span class="marketing-live-status" id="marketing-live-status"><i></i> Demo Data</span>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="openMarketingAdsConnection()">เชื่อม API</button>
               <button class="btn btn-ghost btn-sm" type="button" onclick="refreshMarketingLiveDashboard()">↺ Refresh</button>
               <button class="btn btn-primary btn-sm" type="button" onclick="openMarketingCampaignModal()">+ เพิ่มแคมเปญ</button>
             </div>
@@ -1053,6 +1054,7 @@
               <span>สามารถเพิ่มแคมเปญและติดตามผลรายแคมเปญได้จากแท็บด้านล่าง</span>
             </div>
             <div>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="useMarketingManualAds()">ใช้ Manual</button>
               <button class="btn btn-ghost btn-sm" type="button" onclick="switchMarketingAdsTab('campaigns',document.querySelector('[data-marketing-tab=&quot;campaigns&quot;]'))">ดูรายแคมเปญ</button>
             </div>
           </div>
@@ -1892,7 +1894,7 @@
 <!-- Toast -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
-<script src="app.js?v=20260619-github-login-1" defer></script>
+<script src="app.js?v=20260619-ads-live-connect-1" defer></script>
 <script src="calendar.js?v=20260613-admin-system" defer></script>
 
 <!-- ── Import CSV Modal ── -->

@@ -8144,6 +8144,11 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
   ];
   var MARKETING_CONTRACT_KEY = "erp-marketing-media-contracts";
   var MARKETING_CAMPAIGN_KEY = "erp-marketing-campaigns";
+  var MARKETING_LIVE_ENDPOINT_KEY = "erp-marketing-ads-live-endpoint";
+  var MARKETING_LIVE_CACHE_KEY = "erp-marketing-ads-live-cache";
+  var MARKETING_LIVE_FETCHING = false;
+  var MARKETING_LIVE_LAST_AUTO_FETCH = 0;
+  var MARKETING_LIVE_STATE = { source: "manual", rows: null, updatedAt: null, message: "" };
   var MARKETING_CAMPAIGN_EDIT_ID = null;
   var MARKETING_CAMPAIGN_SEED = [
     { id: 1, name: "บ้านเดี่ยว 3 ห้องนอน", platform: "FB", budgetDay: 3000, spent: 52400, lead: 198, ctr: 3.9, reach: 120000, impression: 280000, status: "active", note: "" },
@@ -8315,6 +8320,168 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     localStorage.setItem(MARKETING_CAMPAIGN_KEY, JSON.stringify(rows || []));
   }
 
+  function marketingLiveEndpoint() {
+    return String((window.ADS_LIVE_ENDPOINT || localStorage.getItem(MARKETING_LIVE_ENDPOINT_KEY) || "")).trim();
+  }
+
+  function marketingNumber(value) {
+    if (value == null || value === "") return 0;
+    var cleaned = String(value).replace(/[^\d.-]/g, "");
+    var number = Number(cleaned);
+    return isFinite(number) ? number : 0;
+  }
+
+  function marketingLivePlatform(value) {
+    var text = String(value || "").toLowerCase();
+    if (text.indexOf("tiktok") > -1 || text === "tt") return "TT";
+    return "FB";
+  }
+
+  function marketingLiveStatus(value) {
+    var text = String(value || "").toLowerCase();
+    if (text.indexOf("pause") > -1 || text.indexOf("พัก") > -1) return "paused";
+    if (text.indexOf("end") > -1 || text.indexOf("complete") > -1 || text.indexOf("จบ") > -1) return "ended";
+    return "active";
+  }
+
+  function marketingLivePayloadRows(payload) {
+    if (Array.isArray(payload)) return payload;
+    if (!payload || typeof payload !== "object") return [];
+    if (payload.ok === false) throw new Error(payload.msg || payload.error || "ADS API rejected");
+    return payload.campaigns || payload.rows || payload.data || payload.ads || payload.items || [];
+  }
+
+  function normalizeMarketingLiveRows(payload) {
+    return marketingLivePayloadRows(payload).map(function (row, index) {
+      var name = row.name || row.campaignName || row.campaign_name || row.campaign || row.ad_name || row.adset_name;
+      return {
+        id: row.id || row.campaignId || row.campaign_id || ("live-" + index),
+        name: String(name || ("Campaign " + (index + 1))),
+        platform: marketingLivePlatform(row.platform || row.source || row.channel || row.accountPlatform),
+        accountId: String(row.accountId || row.account_id || row.adAccountId || row.ad_account_id || ""),
+        budgetDay: marketingNumber(row.budgetDay || row.dailyBudget || row.daily_budget || row.budget),
+        spent: marketingNumber(row.spent || row.spend || row.amount_spent || row.cost),
+        lead: marketingNumber(row.lead || row.leads || row.lead_count || row.results || row.conversions),
+        ctr: marketingNumber(row.ctr || row.ctr_percent || row.click_through_rate),
+        reach: marketingNumber(row.reach || row.unique_reach),
+        impression: marketingNumber(row.impression || row.impressions),
+        status: marketingLiveStatus(row.status || row.effective_status),
+        note: String(row.note || row.objective || row.optimization_goal || "")
+      };
+    }).filter(function (row) {
+      return row.name && (row.spent || row.lead || row.reach || row.impression || row.budgetDay);
+    });
+  }
+
+  function getMarketingLiveSession() {
+    return window.ERP_SECURITY && window.ERP_SECURITY.getSession && window.ERP_SECURITY.getSession();
+  }
+
+  async function fetchMarketingLivePayload() {
+    var endpoint = marketingLiveEndpoint();
+    if (endpoint) {
+      var url = endpoint + (endpoint.indexOf("?") > -1 ? "&" : "?") + "v=" + Date.now();
+      return fetchJsonUrl(url);
+    }
+    if (API_URL && (API_TOKEN || getMarketingLiveSession())) {
+      var actions = ["adsLive", "ads_live", "marketingAds", "marketing_ads"];
+      var lastError = null;
+      for (var i = 0; i < actions.length; i += 1) {
+        try {
+          return await apiGet({ action: actions[i] });
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error("ADS API unavailable");
+    }
+    throw new Error("ยังไม่ได้ตั้งค่า ADS Live API");
+  }
+
+  function loadMarketingLiveCache() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(MARKETING_LIVE_CACHE_KEY) || "null");
+      if (saved && Array.isArray(saved.rows) && saved.rows.length) return saved;
+    } catch (e) {}
+    return null;
+  }
+
+  function saveMarketingLiveCache(rows, source) {
+    localStorage.setItem(MARKETING_LIVE_CACHE_KEY, JSON.stringify({
+      rows: rows || [],
+      source: source || "live",
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
+  function marketingDashboardRows() {
+    if (MARKETING_LIVE_STATE.rows && MARKETING_LIVE_STATE.rows.length) return MARKETING_LIVE_STATE.rows;
+    var cache = loadMarketingLiveCache();
+    if (cache) {
+      MARKETING_LIVE_STATE = { source: cache.source || "cache", rows: cache.rows, updatedAt: cache.updatedAt, message: "ข้อมูลล่าสุดที่บันทึกไว้" };
+      return cache.rows;
+    }
+    return marketingCampaigns();
+  }
+
+  function setMarketingLiveSource(source, rows, message) {
+    MARKETING_LIVE_STATE = {
+      source: source || "manual",
+      rows: rows && rows.length ? rows : null,
+      updatedAt: new Date().toISOString(),
+      message: message || ""
+    };
+  }
+
+  function marketingLiveStatusText() {
+    if (MARKETING_LIVE_FETCHING) return "กำลังเชื่อมต่อ";
+    if (MARKETING_LIVE_STATE.source === "live") return "Live API";
+    if (MARKETING_LIVE_STATE.source === "cache") return "Cache ล่าสุด";
+    return "Manual Data";
+  }
+
+  function updateMarketingConnectBanner() {
+    var banner = document.getElementById("marketing-connect-banner");
+    if (!banner) return;
+    var endpoint = marketingLiveEndpoint();
+    var title = MARKETING_LIVE_STATE.source === "live" ? "ADS Live เชื่อมต่อ Backend แล้ว" : "ADS Manager ใช้ข้อมูล Manual ในระบบ";
+    var detail = MARKETING_LIVE_STATE.source === "live"
+      ? "ข้อมูลถูกดึงผ่าน Backend/API แล้วแปลงเข้า Dashboard อัตโนมัติ"
+      : (endpoint ? "ตั้งค่า API ไว้แล้ว กด Refresh เพื่อดึงข้อมูลล่าสุด" : "กด เชื่อม API เพื่อใส่ URL Backend/Apps Script ที่ดึงข้อมูลโฆษณาไว้แล้ว");
+    if (MARKETING_LIVE_STATE.message) detail = MARKETING_LIVE_STATE.message;
+    banner.querySelector("b").textContent = title;
+    banner.querySelector("span").textContent = detail;
+  }
+
+  async function refreshMarketingLiveData(showToast) {
+    if (MARKETING_LIVE_FETCHING) return;
+    MARKETING_LIVE_FETCHING = true;
+    updateMarketingConnectBanner();
+    try {
+      var payload = await fetchMarketingLivePayload();
+      var rows = normalizeMarketingLiveRows(payload);
+      if (!rows.length) throw new Error("API ไม่มีข้อมูลแคมเปญ");
+      setMarketingLiveSource("live", rows, "");
+      saveMarketingLiveCache(rows, "live");
+      renderMarketingAdsOverview();
+      renderMarketingCampaigns();
+      if (showToast) toast("เชื่อมข้อมูล ADS Live สำเร็จ", "ok");
+    } catch (error) {
+      var cache = loadMarketingLiveCache();
+      if (cache) {
+        setMarketingLiveSource("cache", cache.rows, "ใช้ข้อมูลล่าสุดที่เคยเชื่อมได้ เพราะ API ยังไม่ตอบกลับ");
+      } else {
+        setMarketingLiveSource("manual", null, error.message || "ใช้ข้อมูล Manual เพราะ API ยังไม่พร้อม");
+      }
+      renderMarketingAdsOverview();
+      renderMarketingCampaigns();
+      if (showToast) toast((error.message || "ADS API ยังไม่พร้อม") + " - ใช้ข้อมูลสำรอง", "info");
+    } finally {
+      MARKETING_LIVE_FETCHING = false;
+      updateMarketingConnectBanner();
+    }
+  }
+
   function marketingMoney(value) {
     return "฿" + Number(value || 0).toLocaleString("th-TH", { maximumFractionDigits: 0 });
   }
@@ -8341,7 +8508,7 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
         id: platform,
         platform: platform,
         name: platform === "FB" ? "Facebook / Meta Ads" : "TikTok Ads",
-        accountId: platform === "FB" ? "act_demo_meta" : "tt_demo_ads",
+        accountId: (list[0] && list[0].accountId) || (platform === "FB" ? "act_demo_meta" : "tt_demo_ads"),
         dailyBudget: list.reduce(function (sum, row) { return sum + Number(row.budgetDay || 0); }, 0),
         campaigns: list,
         totals: totals
@@ -8363,7 +8530,8 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     var update = document.getElementById("marketing-live-update");
     var status = document.getElementById("marketing-live-status");
     if (update) update.textContent = "อัปเดตล่าสุด: " + new Date().toLocaleTimeString("th-TH", { hour:"2-digit", minute:"2-digit" });
-    if (status) status.innerHTML = "<i></i> Demo Data";
+    if (status) status.innerHTML = "<i></i> " + escapeHtml(marketingLiveStatusText());
+    updateMarketingConnectBanner();
     if (overview) {
       overview.innerHTML =
         marketingLiveKpi("Lead รวมทั้งหมด", String(totals.lead || 0), "ทุก Account", "up") +
@@ -8430,9 +8598,33 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
   };
 
   window.refreshMarketingLiveDashboard = function () {
+    refreshMarketingLiveData(true);
+  };
+
+  window.openMarketingAdsConnection = function () {
+    var current = marketingLiveEndpoint();
+    var url = prompt("วาง URL Backend/Apps Script สำหรับ ADS Live (ปล่อยว่างเพื่อล้างค่า)", current);
+    if (url === null) return;
+    url = String(url || "").trim();
+    if (!url) {
+      localStorage.removeItem(MARKETING_LIVE_ENDPOINT_KEY);
+      localStorage.removeItem(MARKETING_LIVE_CACHE_KEY);
+      setMarketingLiveSource("manual", null, "ล้างการเชื่อม API แล้ว ใช้ข้อมูล Manual");
+      renderMarketingAdsOverview();
+      renderMarketingCampaigns();
+      toast("กลับไปใช้ข้อมูล Manual แล้ว", "ok");
+      return;
+    }
+    localStorage.setItem(MARKETING_LIVE_ENDPOINT_KEY, url);
+    refreshMarketingLiveData(true);
+  };
+
+  window.useMarketingManualAds = function () {
+    localStorage.removeItem(MARKETING_LIVE_CACHE_KEY);
+    setMarketingLiveSource("manual", null, "ใช้ข้อมูล Manual จากแคมเปญที่บันทึกในระบบ");
     renderMarketingAdsOverview();
     renderMarketingCampaigns();
-    toast("Refresh ADS Dashboard แล้ว", "ok");
+    toast("สลับเป็นข้อมูล Manual แล้ว", "ok");
   };
 
   window.setMarketingCampaignStatus = function (id, status) {
@@ -8455,7 +8647,7 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
   };
 
   function renderMarketingAdsOverview() {
-    var rows = marketingCampaigns();
+    var rows = marketingDashboardRows();
     var totals = marketingCampaignTotals(rows);
     var totalBudgetInput = document.getElementById("marketing-budget-total");
     var totalBudget = Number(totalBudgetInput && totalBudgetInput.value) || 150000;
@@ -8506,7 +8698,7 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
   }
 
   window.renderMarketingLiveDashboardNow = function () {
-    var rows = marketingCampaigns();
+    var rows = marketingDashboardRows();
     var totals = marketingCampaignTotals(rows);
     var totalBudgetInput = document.getElementById("marketing-budget-total");
     var totalBudget = Number(totalBudgetInput && totalBudgetInput.value) || 150000;
@@ -8520,7 +8712,8 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     if (!body) return;
     var pf = (document.getElementById("marketing-filter-platform") || {}).value || "all";
     var st = (document.getElementById("marketing-filter-status") || {}).value || "all";
-    var rows = marketingCampaigns().filter(function (row) {
+    var readOnlyLive = MARKETING_LIVE_STATE.source !== "manual";
+    var rows = marketingDashboardRows().filter(function (row) {
       return (pf === "all" || row.platform === pf) && (st === "all" || row.status === st);
     });
     var statusLabel = { active: "กำลังรัน", paused: "พักไว้", ended: "จบแล้ว" };
@@ -8529,7 +8722,7 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
       var cpl = row.lead > 0 ? marketingMoney(Math.round(Number(row.spent || 0) / Number(row.lead || 1))) : "-";
       var budgetBase = Number(row.budgetDay || 0) * 30;
       var pct = budgetBase > 0 ? Math.min(100, Math.round((Number(row.spent || 0) / budgetBase) * 100)) : 0;
-      return '<tr><td>' + (platformBadge[row.platform] || "") + '</td><td><b>' + escapeHtml(row.name) + '</b><small>' + escapeHtml(row.note || "") + '</small></td><td>' + marketingMoney(row.budgetDay) + '</td><td><div class="marketing-campaign-spent"><span>' + marketingMoney(row.spent) + '</span><div><i style="width:' + pct + '%"></i></div></div></td><td>' + Number(row.lead || 0).toLocaleString("th-TH") + '</td><td>' + cpl + '</td><td>' + Number(row.ctr || 0).toFixed(1) + '%</td><td><span class="marketing-campaign-status ' + row.status + '">' + (statusLabel[row.status] || row.status) + '</span></td><td><button class="btn btn-ghost btn-sm" type="button" onclick="editMarketingCampaign(' + row.id + ')">แก้ไข</button></td></tr>';
+      return '<tr><td>' + (platformBadge[row.platform] || "") + '</td><td><b>' + escapeHtml(row.name) + '</b><small>' + escapeHtml(row.note || "") + '</small></td><td>' + marketingMoney(row.budgetDay) + '</td><td><div class="marketing-campaign-spent"><span>' + marketingMoney(row.spent) + '</span><div><i style="width:' + pct + '%"></i></div></div></td><td>' + Number(row.lead || 0).toLocaleString("th-TH") + '</td><td>' + cpl + '</td><td>' + Number(row.ctr || 0).toFixed(1) + '%</td><td><span class="marketing-campaign-status ' + row.status + '">' + (statusLabel[row.status] || row.status) + '</span></td><td>' + (readOnlyLive ? '<span class="tag">Live</span>' : '<button class="btn btn-ghost btn-sm" type="button" onclick="editMarketingCampaign(' + row.id + ')">แก้ไข</button>') + '</td></tr>';
     }).join("");
     var count = document.getElementById("marketing-campaign-count");
     if (count) count.textContent = rows.length + " แคมเปญ";
@@ -8817,6 +9010,10 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     renderMarketingDeptTasks();
     renderMarketingAdsOverview();
     renderMarketingLiveDashboardNow();
+    if ((marketingLiveEndpoint() || (API_URL && (API_TOKEN || getMarketingLiveSession()))) && Date.now() - MARKETING_LIVE_LAST_AUTO_FETCH > 60000) {
+      MARKETING_LIVE_LAST_AUTO_FETCH = Date.now();
+      refreshMarketingLiveData(false);
+    }
     renderMarketingCampaigns();
     renderMarketingCompare();
     renderMarketingHistory();
