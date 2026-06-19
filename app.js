@@ -10315,3 +10315,78 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     setTimeout(function () { afterPanelOpen(CURRENT_PANEL); }, 260);
   });
 })();
+
+/* Executive department overview routing. */
+(function () {
+  "use strict";
+
+  function isExecutiveDeptUser() {
+    var id = String(CURRENT_USER && (CURRENT_USER.employeeId || CURRENT_USER.id) || "").trim().toUpperCase();
+    var role = String(CURRENT_USER && CURRENT_USER.role || "").trim().toLowerCase();
+    return id === "EMP-EXEC" || role === "executive";
+  }
+
+  function setPanelOverviewClass(panelName) {
+    var salesPanel = document.getElementById("panel-sales");
+    var marketingPanel = document.getElementById("panel-marketing-dept");
+    var executive = isExecutiveDeptUser();
+    if (salesPanel) salesPanel.classList.toggle("exec-dept-overview", executive && panelName === "sales");
+    if (marketingPanel) marketingPanel.classList.toggle("exec-dept-overview", executive && panelName === "marketing-dept");
+  }
+
+  function applyExecutiveDepartmentOverview(panelName) {
+    var panel = panelName || CURRENT_PANEL;
+    setPanelOverviewClass(panel);
+    if (!isExecutiveDeptUser()) return;
+
+    if (panel === "sales") {
+      if (typeof renderSalesHubSummary === "function") renderSalesHubSummary();
+      if (typeof window.renderSalesCrmPipeline === "function") window.renderSalesCrmPipeline();
+      if (typeof window.switchSalesCrmView === "function") window.switchSalesCrmView("report");
+      var salesFrame = document.querySelector("#panel-sales .sales-code-frame");
+      if (salesFrame) salesFrame.removeAttribute("src");
+      var title = document.getElementById("page-title");
+      if (title) title.textContent = "Sales Dashboard";
+    }
+
+    if (panel === "marketing-dept") {
+      var overviewTab = document.querySelector('[data-marketing-tab="overview"]');
+      if (typeof window.switchMarketingAdsTab === "function") window.switchMarketingAdsTab("overview", overviewTab);
+      if (typeof window.renderMarketingDepartment === "function") window.renderMarketingDepartment();
+      var marketingTitle = document.getElementById("page-title");
+      if (marketingTitle) marketingTitle.textContent = "Marketing Dashboard";
+    }
+  }
+
+  var executiveDeptSwitchPanel = window.switchPanel || switchPanel;
+  switchPanel = window.switchPanel = function (el) {
+    var panel = el && el.getAttribute ? el.getAttribute("data-panel") : CURRENT_PANEL;
+    var result = executiveDeptSwitchPanel(el);
+    setTimeout(function () { applyExecutiveDepartmentOverview(panel); }, 80);
+    return result;
+  };
+
+  var executiveDeptSwitchPanelByName = window.switchPanelByName || switchPanelByName;
+  switchPanelByName = window.switchPanelByName = function (name) {
+    var result = executiveDeptSwitchPanelByName(name);
+    setTimeout(function () { applyExecutiveDepartmentOverview(name); }, 80);
+    return result;
+  };
+
+  var executiveDeptOpenSalesHubTab = window.openSalesHubTab;
+  if (typeof executiveDeptOpenSalesHubTab === "function") {
+    window.openSalesHubTab = function (sheet, button) {
+      if (isExecutiveDeptUser()) {
+        var salesNav = document.querySelector('.nav-item[data-panel="sales"]');
+        if (salesNav) executiveDeptSwitchPanel(salesNav);
+        setTimeout(function () { applyExecutiveDepartmentOverview("sales"); }, 80);
+        return;
+      }
+      return executiveDeptOpenSalesHubTab(sheet, button);
+    };
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(function () { applyExecutiveDepartmentOverview(CURRENT_PANEL); }, 360);
+  });
+})();

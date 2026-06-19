@@ -6209,6 +6209,42 @@ body, #erp-app, .main, .content, .panel, .dashboard-layout,
   display: none;
 }
 
+#panel-sales.exec-dept-overview > .sales-code-frame-wrap,
+#panel-sales.exec-dept-overview .sales-hub-actions,
+#panel-sales.exec-dept-overview .sales-crm-actions,
+#panel-sales.exec-dept-overview .sales-hub-tabs,
+#panel-sales.exec-dept-overview .sales-hub-pane {
+  display: none !important;
+}
+
+#panel-sales.exec-dept-overview > .sales-hub {
+  display: grid !important;
+}
+
+#panel-sales.exec-dept-overview .sales-hub-stat {
+  cursor: default;
+  pointer-events: none;
+}
+
+#panel-sales.exec-dept-overview .sales-hub-kicker::after {
+  content: " / EXECUTIVE OVERVIEW";
+  color: #38bdf8;
+}
+
+#panel-marketing-dept.exec-dept-overview .marketing-dept-actions,
+#panel-marketing-dept.exec-dept-overview .marketing-connect-banner,
+#panel-marketing-dept.exec-dept-overview .marketing-ads-tabs,
+#panel-marketing-dept.exec-dept-overview #marketing-ads-campaigns,
+#panel-marketing-dept.exec-dept-overview #marketing-ads-history,
+#panel-marketing-dept.exec-dept-overview .marketing-live-actions button {
+  display: none !important;
+}
+
+#panel-marketing-dept.exec-dept-overview .marketing-dept-kicker::after {
+  content: " / EXECUTIVE OVERVIEW";
+  color: #38bdf8;
+}
+
 .finance-code-frame-wrap {
   width: 100%;
   min-height: calc(100vh - 52px);
