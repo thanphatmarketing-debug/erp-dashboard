@@ -3992,6 +3992,22 @@ body, #erp-app, .main, .content, .panel, .dashboard-layout,
   background: #34d399;
   animation: marketingPulse 1.5s infinite;
 }
+.marketing-live-status.is-warn {
+  border-color: rgba(245, 158, 11, .48);
+  background: rgba(245, 158, 11, .1);
+  color: #fbbf24;
+}
+.marketing-live-status.is-warn i {
+  background: #fbbf24;
+}
+.marketing-live-status.is-error {
+  border-color: rgba(248, 113, 113, .55);
+  background: rgba(248, 113, 113, .11);
+  color: #fecaca;
+}
+.marketing-live-status.is-error i {
+  background: #f87171;
+}
 @keyframes marketingPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: .38; }
@@ -4024,6 +4040,74 @@ body, #erp-app, .main, .content, .panel, .dashboard-layout,
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+.marketing-connect-banner.is-warn {
+  border-color: rgba(245, 158, 11, .5);
+  background: rgba(53, 35, 10, .58);
+}
+.marketing-connect-banner.is-error {
+  border-color: rgba(248, 113, 113, .5);
+  background: rgba(61, 18, 23, .58);
+}
+.marketing-connect-banner.is-error b,
+.marketing-connect-banner.is-warn b {
+  color: #fde68a;
+}
+.marketing-api-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -4px 0 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(248, 113, 113, .5);
+  border-radius: 10px;
+  background: rgba(61, 18, 23, .62);
+}
+.marketing-api-alert[hidden],
+.marketing-api-log[hidden] {
+  display: none;
+}
+.marketing-api-alert b {
+  display: block;
+  color: #fecaca;
+  font-size: 12px;
+}
+.marketing-api-alert span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text2);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.marketing-api-log {
+  display: grid;
+  gap: 6px;
+  margin: -4px 0 14px;
+}
+.marketing-api-log-row {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 9px;
+  background: rgba(15, 23, 42, .48);
+}
+.marketing-api-log-row b {
+  color: var(--text);
+  font-size: 11px;
+}
+.marketing-api-log-row span {
+  color: var(--text2);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.marketing-api-log-row.is-error {
+  border-color: rgba(248, 113, 113, .35);
+}
+.marketing-api-log-row.is-ok {
+  border-color: rgba(34, 197, 94, .3);
 }
 .marketing-dept-task-list,
 .marketing-dept-pipeline {

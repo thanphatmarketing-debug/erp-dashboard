@@ -8146,6 +8146,7 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
   var MARKETING_CAMPAIGN_KEY = "erp-marketing-campaigns";
   var MARKETING_LIVE_ENDPOINT_KEY = "erp-marketing-ads-live-endpoint";
   var MARKETING_LIVE_CACHE_KEY = "erp-marketing-ads-live-cache";
+  var MARKETING_API_LOG_KEY = "erp-marketing-api-log";
   var MARKETING_LIVE_FETCHING = false;
   var MARKETING_LIVE_LAST_AUTO_FETCH = 0;
   var MARKETING_LIVE_STATE = { source: "manual", rows: null, updatedAt: null, message: "" };
@@ -8440,17 +8441,81 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     return "Manual Data";
   }
 
+  function marketingApiLog() {
+    try {
+      var rows = JSON.parse(localStorage.getItem(MARKETING_API_LOG_KEY) || "[]");
+      return Array.isArray(rows) ? rows : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveMarketingApiLog(rows) {
+    localStorage.setItem(MARKETING_API_LOG_KEY, JSON.stringify((rows || []).slice(0, 8)));
+  }
+
+  function pushMarketingApiLog(type, message, detail) {
+    var rows = marketingApiLog();
+    var next = {
+      type: type || "error",
+      message: message || "",
+      detail: detail || "",
+      at: new Date().toISOString()
+    };
+    rows.unshift(next);
+    saveMarketingApiLog(rows);
+    renderMarketingApiLog();
+  }
+
+  function renderMarketingApiLog() {
+    var rows = marketingApiLog();
+    var alert = document.getElementById("marketing-api-alert");
+    var title = document.getElementById("marketing-api-alert-title");
+    var detail = document.getElementById("marketing-api-alert-detail");
+    var log = document.getElementById("marketing-api-log");
+    var latestError = rows.find(function (row) { return row.type === "error"; });
+    if (alert) {
+      alert.hidden = !latestError;
+      if (title && latestError) title.textContent = "ADS API หลุด";
+      if (detail && latestError) {
+        detail.textContent = (latestError.message || "เชื่อม API ไม่สำเร็จ") + " · " + new Date(latestError.at).toLocaleString("th-TH", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+      }
+    }
+    if (!log) return;
+    log.hidden = !rows.length;
+    log.innerHTML = rows.slice(0, 4).map(function (row) {
+      var time = new Date(row.at).toLocaleString("th-TH", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" });
+      return '<div class="marketing-api-log-row is-' + escapeHtml(row.type || "error") + '">' +
+        '<b>' + escapeHtml(time) + '</b>' +
+        '<span>' + escapeHtml(row.message || "") + (row.detail ? " - " + escapeHtml(row.detail) : "") + '</span>' +
+      '</div>';
+    }).join("");
+  }
+
+  window.clearMarketingApiLog = function () {
+    localStorage.removeItem(MARKETING_API_LOG_KEY);
+    renderMarketingApiLog();
+    toast("ล้างบันทึก API การตลาดแล้ว", "ok");
+  };
+
   function updateMarketingConnectBanner() {
     var banner = document.getElementById("marketing-connect-banner");
-    if (!banner) return;
+    if (!banner) {
+      renderMarketingApiLog();
+      return;
+    }
     var endpoint = marketingLiveEndpoint();
-    var title = MARKETING_LIVE_STATE.source === "live" ? "ADS Live เชื่อมต่อ Backend แล้ว" : "ADS Manager ใช้ข้อมูล Manual ในระบบ";
+    var isBackup = MARKETING_LIVE_STATE.source === "cache" || (MARKETING_LIVE_STATE.source === "manual" && !!endpoint);
+    var title = MARKETING_LIVE_STATE.source === "live" ? "ADS Live เชื่อมต่อ Backend แล้ว" : (isBackup ? "ADS API หลุด ใช้ข้อมูลสำรอง" : "ADS Manager ใช้ข้อมูล Manual ในระบบ");
     var detail = MARKETING_LIVE_STATE.source === "live"
       ? "ข้อมูลถูกดึงผ่าน Backend/API แล้วแปลงเข้า Dashboard อัตโนมัติ"
-      : (endpoint ? "ตั้งค่า API ไว้แล้ว กด Refresh เพื่อดึงข้อมูลล่าสุด" : "กด เชื่อม API เพื่อใส่ URL Backend/Apps Script ที่ดึงข้อมูลโฆษณาไว้แล้ว");
+      : (endpoint ? "ระบบบันทึกเหตุการณ์ไว้ด้านล่าง และยังแสดงข้อมูลสำรองให้ใช้งานต่อ" : "กด เชื่อม API เพื่อใส่ URL Backend/Apps Script ที่ดึงข้อมูลโฆษณาไว้แล้ว");
     if (MARKETING_LIVE_STATE.message) detail = MARKETING_LIVE_STATE.message;
+    banner.classList.toggle("is-error", isBackup);
+    banner.classList.toggle("is-warn", MARKETING_LIVE_FETCHING);
     banner.querySelector("b").textContent = title;
     banner.querySelector("span").textContent = detail;
+    renderMarketingApiLog();
   }
 
   async function refreshMarketingLiveData(showToast) {
@@ -8463,19 +8528,24 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
       if (!rows.length) throw new Error("API ไม่มีข้อมูลแคมเปญ");
       setMarketingLiveSource("live", rows, "");
       saveMarketingLiveCache(rows, "live");
+      if (marketingApiLog().some(function (row) { return row.type === "error"; })) {
+        pushMarketingApiLog("ok", "ADS API กลับมาเชื่อมต่อได้แล้ว", rows.length + " แคมเปญ");
+      }
       renderMarketingAdsOverview();
       renderMarketingCampaigns();
       if (showToast) toast("เชื่อมข้อมูล ADS Live สำเร็จ", "ok");
     } catch (error) {
+      var errorMessage = error.message || "ADS API ยังไม่พร้อม";
       var cache = loadMarketingLiveCache();
       if (cache) {
         setMarketingLiveSource("cache", cache.rows, "ใช้ข้อมูลล่าสุดที่เคยเชื่อมได้ เพราะ API ยังไม่ตอบกลับ");
       } else {
-        setMarketingLiveSource("manual", null, error.message || "ใช้ข้อมูล Manual เพราะ API ยังไม่พร้อม");
+        setMarketingLiveSource("manual", null, errorMessage || "ใช้ข้อมูล Manual เพราะ API ยังไม่พร้อม");
       }
+      pushMarketingApiLog("error", "ADS API หลุด", errorMessage);
       renderMarketingAdsOverview();
       renderMarketingCampaigns();
-      if (showToast) toast((error.message || "ADS API ยังไม่พร้อม") + " - ใช้ข้อมูลสำรอง", "info");
+      if (showToast) toast(errorMessage + " - ใช้ข้อมูลสำรอง", "info");
     } finally {
       MARKETING_LIVE_FETCHING = false;
       updateMarketingConnectBanner();
@@ -8530,7 +8600,12 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
     var update = document.getElementById("marketing-live-update");
     var status = document.getElementById("marketing-live-status");
     if (update) update.textContent = "อัปเดตล่าสุด: " + new Date().toLocaleTimeString("th-TH", { hour:"2-digit", minute:"2-digit" });
-    if (status) status.innerHTML = "<i></i> " + escapeHtml(marketingLiveStatusText());
+    if (status) {
+      var isBackup = MARKETING_LIVE_STATE.source === "cache" || (MARKETING_LIVE_STATE.source === "manual" && !!marketingLiveEndpoint());
+      status.classList.toggle("is-warn", MARKETING_LIVE_FETCHING || MARKETING_LIVE_STATE.source === "cache");
+      status.classList.toggle("is-error", isBackup && !MARKETING_LIVE_FETCHING);
+      status.innerHTML = "<i></i> " + escapeHtml(marketingLiveStatusText());
+    }
     updateMarketingConnectBanner();
     if (overview) {
       overview.innerHTML =
@@ -9008,6 +9083,7 @@ document.addEventListener('DOMContentLoaded', bindImportOverlayClose);
   window.renderMarketingDepartment = function () {
     renderMarketingDeptSummary();
     renderMarketingDeptTasks();
+    renderMarketingApiLog();
     renderMarketingAdsOverview();
     renderMarketingLiveDashboardNow();
     if ((marketingLiveEndpoint() || (API_URL && (API_TOKEN || getMarketingLiveSession()))) && Date.now() - MARKETING_LIVE_LAST_AUTO_FETCH > 60000) {

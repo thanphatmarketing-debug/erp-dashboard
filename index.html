@@ -1059,6 +1059,15 @@
             </div>
           </div>
 
+          <div class="marketing-api-alert" id="marketing-api-alert" hidden>
+            <div>
+              <b id="marketing-api-alert-title">ADS API หลุด</b>
+              <span id="marketing-api-alert-detail">ระบบใช้ข้อมูลสำรองให้ชั่วคราว</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="clearMarketingApiLog()">ล้างบันทึก</button>
+          </div>
+          <div class="marketing-api-log" id="marketing-api-log" hidden></div>
+
           <div class="marketing-ads-tabs" role="tablist" aria-label="Marketing ads tabs">
             <button class="marketing-ads-tab active" type="button" data-marketing-tab="overview" onclick="switchMarketingAdsTab('overview',this)">ภาพรวม</button>
             <button class="marketing-ads-tab" type="button" data-marketing-tab="campaigns" onclick="switchMarketingAdsTab('campaigns',this)">รายแคมเปญ</button>
@@ -1894,7 +1903,7 @@
 <!-- Toast -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
-<script src="app.js?v=20260619-ads-live-connect-1" defer></script>
+<script src="app.js?v=20260619-ads-api-alert-1" defer></script>
 <script src="calendar.js?v=20260613-admin-system" defer></script>
 
 <!-- ── Import CSV Modal ── -->
