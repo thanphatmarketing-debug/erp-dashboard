@@ -5242,6 +5242,27 @@ body, #erp-app, .main, .content, .panel, .dashboard-layout,
 .executive-dashboard {
   gap: 14px;
 }
+.executive-dashboard .exec-calendar-card {
+  padding: 16px;
+}
+.executive-dashboard .exec-calendar-card .calendar-dashboard-title {
+  font-size: 16px;
+}
+.executive-dashboard .exec-calendar-card .calendar-dashboard-sub {
+  font-size: 11px;
+}
+.executive-dashboard .exec-calendar-card .month-day {
+  min-height: 58px;
+}
+.executive-dashboard .exec-calendar-card .dashboard-calendar-upcoming {
+  margin-top: 10px;
+}
+.executive-dashboard .exec-calendar-card .calendar-list {
+  max-height: 180px;
+}
+.executive-dashboard .exec-calendar-card .calendar-appointment-list {
+  max-height: 210px;
+}
 .exec-topbar {
   display: flex;
   align-items: flex-start;

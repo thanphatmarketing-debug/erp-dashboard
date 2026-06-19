@@ -7,7 +7,7 @@
 <title>ERP Dashboard v2</title>
 <link rel="icon" href="data:,">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="styles.css?v=20260619-ads-kpi-one-row-1">
+<link rel="stylesheet" href="styles.css?v=20260619-exec-calendar-move-1">
 </head>
 <body>
 
@@ -360,15 +360,54 @@
           </article>
         </div>
 
-        <article class="exec-card">
-          <div class="exec-card-head">
+        <article class="exec-card dashboard-calendar-card exec-calendar-card" id="dashboard-work-calendar">
+          <div class="calendar-dashboard-head">
             <div>
-              <h3>Dashboard ทุกแผนก</h3>
-              <p>สรุปโครงสร้างหลังบ้านตามแผนก</p>
+              <div class="calendar-dashboard-title">📅 ปฏิทินนัดหมาย</div>
+              <div class="calendar-dashboard-sub">นัดหมายสำคัญและกิจกรรมทั้งหมด</div>
             </div>
-            <button class="exec-link" type="button" onclick="switchPanelByName('company-backoffice')">เปิดโครงสร้างบริษัท</button>
+            <div class="calendar-dashboard-controls">
+              <button class="btn btn-ghost btn-sm" type="button" onclick="moveCalendarMonth(-1)" title="เดือนก่อน">←</button>
+              <span class="table-count" id="calendar-month-label">—</span>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="moveCalendarMonth(1)" title="เดือนถัดไป">→</button>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="renderWorkCalendar(true)" title="โหลดข้อมูล">↺</button>
+              <button class="btn btn-primary btn-sm" type="button" onclick="toggleCalendarAppointmentForm()">+ เพิ่มนัดหมาย</button>
+            </div>
           </div>
-          <div class="exec-dept-grid" id="exec-dept-grid"></div>
+          <div id="calendar-month"></div>
+          <div class="dashboard-calendar-upcoming">
+            <div class="dashboard-calendar-upcoming-head">
+              <span class="table-title">งานที่กำลังจะถึง</span>
+              <span class="table-count" id="calendar-count">0 รายการ</span>
+            </div>
+            <div id="calendar-list" class="calendar-list"></div>
+          </div>
+          <div class="calendar-appointment-panel">
+            <div class="calendar-appointment-head">
+              <div>
+                <div class="calendar-appointment-title">ตารางนัดหมายลูกค้าประจำวัน</div>
+                <div class="calendar-appointment-date" id="calendar-selected-date-label">—</div>
+              </div>
+              <div class="calendar-appointment-actions">
+                <span class="table-count" id="calendar-appointment-count">0 รายการ</span>
+              </div>
+            </div>
+            <div class="calendar-appointment-form" id="calendar-appointment-form">
+              <div class="calendar-appointment-form-grid">
+                <input class="form-input" id="calendar-appointment-customer" placeholder="ชื่อลูกค้า / บริษัท">
+                <input class="form-input" id="calendar-appointment-time" type="time" value="10:00">
+              </div>
+              <div class="calendar-appointment-form-grid equal">
+                <input class="form-input" id="calendar-appointment-topic" placeholder="หัวข้อนัดหมาย">
+                <input class="form-input" id="calendar-appointment-staff" placeholder="ผู้รับผิดชอบ">
+              </div>
+              <div class="calendar-appointment-form-actions">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="toggleCalendarAppointmentForm(false)">ยกเลิก</button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="saveCalendarAppointment()">💾 บันทึกนัดหมาย</button>
+              </div>
+            </div>
+            <div class="calendar-appointment-list" id="calendar-appointment-list"></div>
+          </div>
         </article>
       </section>
 
@@ -506,55 +545,6 @@
             </div>
             <div class="chart-wrapper" style="height:180px">
               <canvas id="chart-pie"></canvas>
-            </div>
-          </div>
-          <div class="chart-card dashboard-calendar-card" id="dashboard-work-calendar" style="padding:16px">
-            <div class="calendar-dashboard-head">
-              <div>
-                <div class="calendar-dashboard-title">📅 ปฏิทินงาน</div>
-                <div class="calendar-dashboard-sub">วันสำคัญจากสัญญาและโปรเจกต์</div>
-              </div>
-              <div class="calendar-dashboard-controls">
-                <button class="btn btn-ghost btn-sm" type="button" onclick="moveCalendarMonth(-1)" title="เดือนก่อน">←</button>
-                <span class="table-count" id="calendar-month-label">—</span>
-                <button class="btn btn-ghost btn-sm" type="button" onclick="moveCalendarMonth(1)" title="เดือนถัดไป">→</button>
-                <button class="btn btn-ghost btn-sm" type="button" onclick="renderWorkCalendar(true)" title="โหลดข้อมูล">↺</button>
-              </div>
-            </div>
-            <div id="calendar-month"></div>
-            <div class="dashboard-calendar-upcoming">
-              <div class="dashboard-calendar-upcoming-head">
-                <span class="table-title">งานที่กำลังจะถึง</span>
-                <span class="table-count" id="calendar-count">0 รายการ</span>
-              </div>
-              <div id="calendar-list" class="calendar-list"></div>
-            </div>
-            <div class="calendar-appointment-panel">
-              <div class="calendar-appointment-head">
-                <div>
-                  <div class="calendar-appointment-title">ตารางนัดหมายลูกค้าประจำวัน</div>
-                  <div class="calendar-appointment-date" id="calendar-selected-date-label">—</div>
-                </div>
-                <div class="calendar-appointment-actions">
-                  <span class="table-count" id="calendar-appointment-count">0 รายการ</span>
-                  <button class="btn btn-primary btn-sm" type="button" onclick="toggleCalendarAppointmentForm()">+ เพิ่มนัด</button>
-                </div>
-              </div>
-              <div class="calendar-appointment-form" id="calendar-appointment-form">
-                <div class="calendar-appointment-form-grid">
-                  <input class="form-input" id="calendar-appointment-customer" placeholder="ชื่อลูกค้า / บริษัท">
-                  <input class="form-input" id="calendar-appointment-time" type="time" value="10:00">
-                </div>
-                <div class="calendar-appointment-form-grid equal">
-                  <input class="form-input" id="calendar-appointment-topic" placeholder="หัวข้อนัดหมาย">
-                  <input class="form-input" id="calendar-appointment-staff" placeholder="ผู้รับผิดชอบ">
-                </div>
-                <div class="calendar-appointment-form-actions">
-                  <button class="btn btn-ghost btn-sm" type="button" onclick="toggleCalendarAppointmentForm(false)">ยกเลิก</button>
-                  <button class="btn btn-primary btn-sm" type="button" onclick="saveCalendarAppointment()">💾 บันทึกนัดหมาย</button>
-                </div>
-              </div>
-              <div class="calendar-appointment-list" id="calendar-appointment-list"></div>
             </div>
           </div>
         </div><!-- /RIGHT -->
@@ -1903,7 +1893,7 @@
 <!-- Toast -->
 <div class="toast-wrap" id="toast-wrap"></div>
 
-<script src="app.js?v=20260619-ads-api-alert-1" defer></script>
+<script src="app.js?v=20260619-exec-calendar-move-1" defer></script>
 <script src="calendar.js?v=20260613-admin-system" defer></script>
 
 <!-- ── Import CSV Modal ── -->

@@ -332,7 +332,7 @@ function toggleTheme() {
     renderPipeline(sales, customers, contracts);
     renderProjects(projects);
     renderAlerts(projects, contracts, outstanding);
-    renderDepartments();
+    if (typeof renderWorkCalendar === "function") renderWorkCalendar(false);
   }
 
   window.renderExecutiveDashboard = renderExecutiveDashboard;
