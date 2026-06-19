@@ -5587,27 +5587,171 @@ body, #erp-app, .main, .content, .panel, .dashboard-layout,
 }
 
 @media (max-width: 640px) {
+  #panel-dashboard.executive-mode,
+  #panel-dashboard.executive-mode #executive-dashboard,
+  .executive-dashboard,
+  .exec-topbar,
+  .exec-kpi-grid,
+  .exec-grid-2,
+  .exec-grid-3,
+  .exec-card,
+  .exec-calendar-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  #panel-dashboard.executive-mode {
+    padding-inline: 0;
+  }
+  .executive-dashboard {
+    gap: 10px;
+  }
   .exec-topbar,
   .exec-card-head {
     display: grid;
   }
+  .exec-topbar {
+    padding: 16px;
+    border-radius: 10px;
+  }
+  .exec-topbar h2 {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+  .exec-topbar p,
+  .exec-card-head p {
+    font-size: 11px;
+    line-height: 1.45;
+  }
   .exec-top-actions,
   .exec-link {
     width: 100%;
+  }
+  .exec-top-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    justify-content: stretch;
+  }
+  .exec-date-chip,
+  .exec-count,
+  .exec-top-actions .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
   }
   .exec-link,
   .exec-top-actions .btn {
     justify-content: center;
   }
   .exec-kpi-grid,
+  .exec-grid-2,
+  .exec-grid-3,
   .exec-dept-grid {
     grid-template-columns: 1fr;
   }
   .exec-kpi {
     min-height: 94px;
+    padding: 13px;
+  }
+  .exec-kpi strong {
+    font-size: 26px;
+  }
+  .exec-card {
+    padding: 14px;
+    border-radius: 10px;
+  }
+  .exec-card-head {
+    gap: 8px;
+  }
+  .exec-pipeline,
+  .exec-project-list,
+  .exec-alert-list,
+  .exec-mini-row {
+    min-width: 0;
   }
   .exec-pipe-row {
-    grid-template-columns: 76px minmax(0, 1fr) 30px;
+    grid-template-columns: minmax(64px, .7fr) minmax(0, 1fr) 30px;
+    gap: 7px;
+    font-size: 11px;
+  }
+  .exec-table-wrap {
+    overflow-x: hidden;
+  }
+  .exec-table {
+    min-width: 0;
+    table-layout: fixed;
+    font-size: 10px;
+  }
+  .exec-table th,
+  .exec-table td {
+    padding: 7px 5px;
+    overflow-wrap: anywhere;
+  }
+  .executive-dashboard .exec-calendar-card {
+    padding: 14px;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-dashboard-head,
+  .executive-dashboard .exec-calendar-card .calendar-appointment-head {
+    display: grid;
+    gap: 10px;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-dashboard-controls,
+  .executive-dashboard .exec-calendar-card .calendar-appointment-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-dashboard-controls .btn,
+  .executive-dashboard .exec-calendar-card .calendar-dashboard-controls .table-count {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-dashboard-controls .btn:last-child {
+    grid-column: 1 / -1;
+  }
+  .executive-dashboard .exec-calendar-card #calendar-month {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .executive-dashboard .exec-calendar-card .month-cal {
+    min-width: 0;
+    width: 100%;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .executive-dashboard .exec-calendar-card .month-head {
+    padding: 5px 1px;
+    font-size: 8px;
+  }
+  .executive-dashboard .exec-calendar-card .month-day {
+    min-height: 48px;
+    padding: 4px;
+    font-size: 8px;
+  }
+  .executive-dashboard .exec-calendar-card .month-event {
+    padding: 2px;
+    font-size: 7px;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-item {
+    grid-template-columns: 64px minmax(0, 1fr);
+    padding: 8px 0;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-item .btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-appointment-item {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+  .executive-dashboard .exec-calendar-card .calendar-appointment-item-actions {
+    grid-column: 1 / -1;
+  }
+  .executive-dashboard .exec-calendar-card .calendar-appointment-item-actions .btn {
+    flex: 1 1 92px;
+    justify-content: center;
   }
 }
 
