@@ -6231,13 +6231,23 @@ body, #erp-app, .main, .content, .panel, .dashboard-layout,
   color: #38bdf8;
 }
 
+#panel-dashboard.executive-mode #dashboard-work-calendar.exec-calendar-card {
+  order: 99;
+}
+
 #panel-marketing-dept.exec-dept-overview .marketing-dept-actions,
 #panel-marketing-dept.exec-dept-overview .marketing-connect-banner,
 #panel-marketing-dept.exec-dept-overview .marketing-ads-tabs,
 #panel-marketing-dept.exec-dept-overview #marketing-ads-campaigns,
 #panel-marketing-dept.exec-dept-overview #marketing-ads-history,
+#panel-marketing-dept.exec-dept-overview #marketing-platform-overview,
+#panel-marketing-dept.exec-dept-overview #marketing-overview-ai,
 #panel-marketing-dept.exec-dept-overview .marketing-live-actions button {
   display: none !important;
+}
+
+#panel-marketing-dept.exec-dept-overview #marketing-budget-total {
+  pointer-events: none;
 }
 
 #panel-marketing-dept.exec-dept-overview .marketing-dept-kicker::after {
